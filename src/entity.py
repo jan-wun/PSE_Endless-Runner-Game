@@ -19,8 +19,13 @@ class Entity(pygame.sprite.Sprite):
         self.position = position
         self.image_list = image_list
         self.current_state = current_state
+
         # The current image to be displayed.
-        self.image = None
+        self.image = self.image_list[0]
+        self.rect = self.image.get_rect()
+        # Initial position of image.
+        self.rect.topleft = (self.position[0], self.position[1])
+
 
     def update(self):
         """

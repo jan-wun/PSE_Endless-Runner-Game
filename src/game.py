@@ -3,6 +3,7 @@ import sys
 from src.enums import GameState
 from src.menu import Menu
 from src.manager import AudioManager, ScoreManager
+from src.player import Player
 
 
 class Game:
@@ -33,7 +34,15 @@ class Game:
         self.background_x = 0
 
         # Initialize entities (player, enemies, powerups, obstacles, weapon).
-        self.entities = [...]
+        player_idle = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_walk = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
+        player_jump = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player = Player((100, 470), player_idle, player_walk, player_jump)
+
+        self.entities = [pygame.sprite.GroupSingle(player)]
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
@@ -82,6 +91,10 @@ class Game:
         self.screen.blit(self.background, (self.background_x, 0))
         # Create seamless scrolling effect.
         self.screen.blit(self.background, (self.background_x + self.width, 0))
+
+        # Draw entities on screen.
+        for entity in self.entities:
+            entity.draw(self.screen)
 
         # Update the full display Surface to the screen.
         pygame.display.flip()
