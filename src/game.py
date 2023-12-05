@@ -1,4 +1,5 @@
 import pygame
+import sys
 from src.enums import GameState
 from src.menu import Menu
 from src.manager import AudioManager, ScoreManager
@@ -50,7 +51,40 @@ class Game:
         """
         Starts the main game loop.
         """
-        pass
+        # Create a clock object to control the frame rate.
+        clock = pygame.time.Clock()
+
+        while self.current_state == GameState.PLAYING:
+            # Handle events (e.q., quitting the game).
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+            # Functionality for scrolling background.
+            if self.current_state == GameState.PLAYING:
+                self.background_x -= 4
+                # Check if the background has scrolled off the screen and reset position.
+                if self.background_x <= -self.width:
+                    self.background_x = 0
+
+            # Render game objects to the screen.
+            self.render()
+
+            # Cap the frame rate to defined fps.
+            clock.tick(self.fps)
+
+    def render(self):
+        """
+        Renders all game objects to the screen.
+        """
+        # Draw the background image with scroll position.
+        self.screen.blit(self.background, (self.background_x, 0))
+        # Create seamless scrolling effect.
+        self.screen.blit(self.background, (self.background_x + self.width, 0))
+
+        # Update the full display Surface to the screen.
+        pygame.display.flip()
 
     def pause_game(self):
         """
