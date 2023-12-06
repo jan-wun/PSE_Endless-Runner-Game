@@ -7,7 +7,7 @@ class Player(Entity):
     """
     Class representing the player in the game.
     """
-    def __init__(self, position, images_idle, images_walk, images_jump, images_slide):
+    def __init__(self, position, images_idle, images_walk, images_jump, images_slide, screen_width):
         """
         Initializes the player with a given position and animation images.
 
@@ -17,6 +17,7 @@ class Player(Entity):
             images_walk (list): List of images for walking animation.
             images_jump (list): List of images for jumping animation.
             images_slide (list): List of images for sliding animation.
+            screen_width (int): Width of the screen.
         """
         super().__init__(position, images_idle, PlayerState.IDLE)
         # Set initial health.
@@ -26,6 +27,7 @@ class Player(Entity):
         self.images_walk = images_walk
         self.images_jump = images_jump
         self.images_slide = images_slide
+        self.screen_width = screen_width
 
         # Movement parameters.
         self.speed = 5
@@ -61,14 +63,24 @@ class Player(Entity):
         Move the player to the left.
         """
         self.current_state = PlayerState.WALKING_LEFT
-        self.position[0] -= self.speed
+        # Check if the new position is within the left boundary.
+        if self.position[0] - self.speed >= 0:
+            self.position[0] -= self.speed
+        # If not, set the position to the left boundary.
+        else:
+            self.position[0] = 0
 
     def move_right(self):
         """
         Move the player to the right.
         """
         self.current_state = PlayerState.WALKING_RIGHT
-        self.position[0] += self.speed
+        # Check if the new position is within the right boundary.
+        if self.position[0] + self.speed + self.rect.width <= self.screen_width:
+            self.position[0] += self.speed
+        else:
+            # If not, set the position to the right boundary.
+            self.position[0] = self.screen_width - self.rect.width
 
     def jump(self):
         """

@@ -43,7 +43,7 @@ class Game:
         player_slide = [pygame.transform.scale_by(
             pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
 
-        self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide)
+        self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self.width)
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
