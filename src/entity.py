@@ -11,7 +11,7 @@ class Entity(pygame.sprite.Sprite):
         Initializes an entity with a given position, list of images, and current state.
 
         Args:
-            position (tuple): The initial position (x, y) of the entity.
+            position (list): The initial position (x, y) of the entity.
             image_list (list): List of images for animation.
             current_state: The current state of the entity.
         """

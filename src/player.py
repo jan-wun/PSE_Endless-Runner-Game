@@ -32,6 +32,7 @@ class Player(Entity):
         self.jump_height = 20
         self.jump_speed = self.jump_height
         self.is_jumping = False
+        self.is_sliding = False
 
         # Initialize player state.
         self.current_state = PlayerState.IDLE
@@ -39,28 +40,34 @@ class Player(Entity):
     def handle_input(self):
         keys = pygame.key.get_pressed()
 
+        # Handle horizontal movement input.
         if keys[pygame.K_RIGHT]:
             self.move_right()
         elif keys[pygame.K_LEFT]:
             self.move_left()
+        else:
+            self.current_state = PlayerState.IDLE
 
+        # Handle jump and slide input.
         if keys[pygame.K_UP]:
-            self.is_jumping = True
+            if not self.is_jumping and not self.is_sliding:
+                self.is_jumping = True
         elif keys[pygame.K_DOWN]:
-            self.slide()
+            if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding:
+                self.is_sliding = True
 
     def move_left(self):
         """
         Move the player to the left.
         """
-        self.current_state = PlayerState.WALKING
+        self.current_state = PlayerState.WALKING_LEFT
         self.position[0] -= self.speed
 
     def move_right(self):
         """
         Move the player to the right.
         """
-        self.current_state = PlayerState.WALKING
+        self.current_state = PlayerState.WALKING_RIGHT
         self.position[0] += self.speed
 
     def jump(self):
@@ -87,8 +94,22 @@ class Player(Entity):
         """
         Make the player slide.
         """
-        # Implement slide logic
-        pass
+        if self.is_sliding:
+            self.current_state = PlayerState.SLIDING
+            # Gradually reduce speed during the slide.
+            self.speed -= 0.1
+            if self.speed > 0:
+                # Move the player to the right while sliding.
+                if self.current_state == PlayerState.WALKING_RIGHT:
+                    self.position[0] += self.speed
+                # Move the player to the left while sliding.
+                elif self.current_state == PlayerState.WALKING_LEFT:
+                    self.position[0] -= self.speed
+            else:
+                # End sliding when the speed is zero.
+                self.is_sliding = False
+                # Reset speed to the default value.
+                self.speed = 5
 
     def shoot(self):
         """
@@ -100,3 +121,5 @@ class Player(Entity):
         super().update()
         self.handle_input()
         self.jump()
+        self.slide()
+        print(self.current_state)
