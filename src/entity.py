@@ -26,12 +26,12 @@ class Entity(pygame.sprite.Sprite):
         # Initial position of image.
         self.rect.topleft = (self.position[0], self.position[1])
 
-
     def update(self):
         """
         Update logic that is the same for all entities.
         """
-        pass
+        # Update the position of the rect based on the entity's position
+        self.rect.topleft = (self.position[0], self.position[1])
 
     def render(self, screen):
         """
@@ -40,7 +40,9 @@ class Entity(pygame.sprite.Sprite):
         Args:
             screen: The Pygame surface to render the image on.
         """
-        pass
+        screen.blit(self.image, self.position)
+        # Draw a border around the image for debugging purpose.
+        pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
 
     def check_collision(self, other_entity):
         """
