@@ -39,6 +39,10 @@ class Player(Entity):
         self.is_jumping = False
         self.is_sliding = False
 
+        # Initialize animation-related variables.
+        self.animation_speed = 6
+        self.current_frame = 0
+
         # Initialize player state.
         self.current_state = PlayerState.IDLE
         self.previous_walking_state = PlayerState.IDLE
@@ -56,9 +60,9 @@ class Player(Entity):
         keys = pygame.key.get_pressed()
 
         # Handle horizontal movement input.
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] and not self.is_sliding:
             self.move_right()
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT] and not self.is_sliding:
             self.move_left()
         else:
             self.current_state = PlayerState.IDLE
@@ -133,11 +137,21 @@ class Player(Entity):
             self.speed -= 0.1
             if self.speed > 0:
                 # Move the player to the right while sliding.
-                if self.current_state == PlayerState.WALKING_RIGHT:
-                    self.position[0] += self.speed
+                if self.previous_walking_state == PlayerState.WALKING_RIGHT:
+                    # Check if the new position is within the right boundary.
+                    if self.position[0] + self.speed + self.rect.width <= self.game.width:
+                        self.position[0] += self.speed
+                    else:
+                        # If not, set the position to the right boundary.
+                        self.position[0] = self.game.width - self.rect.width
                 # Move the player to the left while sliding.
-                elif self.current_state == PlayerState.WALKING_LEFT:
-                    self.position[0] -= (self.speed + self.game.scrolling_bg_speed)
+                elif self.previous_walking_state == PlayerState.WALKING_LEFT:
+                    # Check if the new position is within the left boundary.
+                    if self.position[0] - (self.speed + self.game.scrolling_bg_speed) >= 0:
+                        self.position[0] -= (self.speed + self.game.scrolling_bg_speed)
+                    else:
+                        # If not, set the position to the left boundary.
+                        self.position[0] = 0
             else:
                 # End sliding when the speed is zero.
                 self.is_sliding = False
@@ -152,15 +166,28 @@ class Player(Entity):
         self.image_list = self.animations.get(self.current_state)
         # Check if the player is moving to the left or was moving to the left before jumping / sliding.
         moving_left = self.current_state == PlayerState.WALKING_LEFT
-        moving_left_before_jump = self.current_state == PlayerState.JUMPING and \
+        moving_left_jump = self.current_state == PlayerState.JUMPING and \
                                   self.previous_walking_state == PlayerState.WALKING_LEFT
-        moving_left_before_slide = (self.current_state == PlayerState.SLIDING or
+        moving_left_slide = (self.current_state == PlayerState.SLIDING or
                                     self.current_state == PlayerState.IDLE) and \
                                    self.previous_walking_state == PlayerState.WALKING_LEFT
-        if moving_left or moving_left_before_jump or moving_left_before_slide:
+        if moving_left or moving_left_jump or moving_left_slide:
             # Flip images vertically.
             self.image_list = [pygame.transform.flip(image, True, False) for image in self.image_list]
         self.image = self.image_list[0]
+
+        # Update the animation frame.
+        self.update_animation_frame()
+
+    def update_animation_frame(self):
+        """
+        Update the animation frame based on the elapsed time.
+        """
+        # Calculate the index of the current frame based on the current frame counter and animation speed.
+        self.current_frame = (self.current_frame + self.animation_speed/100) % len(self.image_list)
+
+        # Set the image of the sprite to the one corresponding to the calculated index.
+        self.image = self.image_list[int(self.current_frame)]
 
     def shoot(self):
         """
@@ -169,7 +196,6 @@ class Player(Entity):
         pass
 
     def update(self):
-        super().update()
         self.handle_input()
         self.jump()
         self.slide()
@@ -177,3 +203,4 @@ class Player(Entity):
         # Set the previous walking state at the end of the update method.
         if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:
             self.previous_walking_state = self.current_state
+        super().update()
