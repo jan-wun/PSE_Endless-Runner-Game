@@ -30,8 +30,9 @@ class Game:
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png")
 
-        # Initialize background position.
+        # Initialize background position and scrolling speed.
         self.background_x = 0
+        self.scrolling_bg_speed = 4
 
         # Initialize entities (player, enemies, powerups, obstacles, weapon).
         player_idle = [pygame.transform.scale_by(
@@ -43,7 +44,7 @@ class Game:
         player_slide = [pygame.transform.scale_by(
             pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
 
-        self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self.width)
+        self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self)
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
@@ -76,7 +77,7 @@ class Game:
 
             # Functionality for scrolling background.
             if self.current_state == GameState.PLAYING:
-                self.background_x -= 4
+                self.background_x -= self.scrolling_bg_speed
                 # Check if the background has scrolled off the screen and reset position.
                 if self.background_x <= -self.width:
                     self.background_x = 0

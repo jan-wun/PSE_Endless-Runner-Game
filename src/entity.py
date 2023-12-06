@@ -30,7 +30,8 @@ class Entity(pygame.sprite.Sprite):
         """
         Update logic that is the same for all entities.
         """
-        # Update the position of the rect based on the entity's position
+        # Update the position of the rect based on the entity's position.
+        self.rect = self.image.get_rect()
         self.rect.topleft = (self.position[0], self.position[1])
 
     def render(self, screen):
