@@ -3,6 +3,7 @@ import sys
 from src.enums import GameState
 from src.menu import Menu
 from src.manager import AudioManager, ScoreManager
+from src.player import Player
 
 
 class Game:
@@ -29,11 +30,21 @@ class Game:
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png")
 
-        # Initialize background position.
+        # Initialize background position and scrolling speed.
         self.background_x = 0
+        self.scrolling_bg_speed = 4
 
         # Initialize entities (player, enemies, powerups, obstacles, weapon).
-        self.entities = [...]
+        player_idle = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_walk = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
+        player_jump = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_slide = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
+
+        self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self)
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
@@ -61,9 +72,12 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
+            # Handle player input and update his position.
+            self.player.update()
+
             # Functionality for scrolling background.
             if self.current_state == GameState.PLAYING:
-                self.background_x -= 4
+                self.background_x -= self.scrolling_bg_speed
                 # Check if the background has scrolled off the screen and reset position.
                 if self.background_x <= -self.width:
                     self.background_x = 0
@@ -82,6 +96,9 @@ class Game:
         self.screen.blit(self.background, (self.background_x, 0))
         # Create seamless scrolling effect.
         self.screen.blit(self.background, (self.background_x + self.width, 0))
+
+        # Draw player on screen.
+        self.player.render(self.screen)
 
         # Update the full display Surface to the screen.
         pygame.display.flip()

@@ -16,6 +16,7 @@ class PlayerState(Enum):
     Enumeration representing the various states of the player.
     """
     IDLE = "idle"
-    WALKING = "walking"
+    WALKING_RIGHT = "walking_right"
+    WALKING_LEFT = "walking_left"
     JUMPING = "jumping"
     SLIDING = "sliding"

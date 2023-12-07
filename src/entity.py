@@ -11,7 +11,7 @@ class Entity(pygame.sprite.Sprite):
         Initializes an entity with a given position, list of images, and current state.
 
         Args:
-            position (tuple): The initial position (x, y) of the entity.
+            position (list): The initial position (x, y) of the entity.
             image_list (list): List of images for animation.
             current_state: The current state of the entity.
         """
@@ -19,14 +19,20 @@ class Entity(pygame.sprite.Sprite):
         self.position = position
         self.image_list = image_list
         self.current_state = current_state
+
         # The current image to be displayed.
-        self.image = None
+        self.image = self.image_list[0]
+        self.rect = self.image.get_rect()
+        # Initial position of image.
+        self.rect.topleft = (self.position[0], self.position[1])
 
     def update(self):
         """
         Update logic that is the same for all entities.
         """
-        pass
+        # Update the position of the rect based on the entity's position.
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (self.position[0], self.position[1])
 
     def render(self, screen):
         """
@@ -35,7 +41,9 @@ class Entity(pygame.sprite.Sprite):
         Args:
             screen: The Pygame surface to render the image on.
         """
-        pass
+        screen.blit(self.image, self.position)
+        # Draw a border around the image for debugging purpose.
+        pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
 
     def check_collision(self, other_entity):
         """
