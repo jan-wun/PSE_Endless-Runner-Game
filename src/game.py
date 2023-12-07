@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 from src.enums import GameState
 from src.menu import Menu
 from src.manager import AudioManager, ScoreManager
@@ -26,7 +27,7 @@ class Game:
         self.height = 768
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Run the Cybernetic City: Endless Dash")
-        self.fps = 60
+        self.fps = 70
 
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png")
@@ -52,15 +53,19 @@ class Game:
         car_images = [pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
         meteor_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.5)]
-        self.car_obstacle = Obstacle([1000, 500], [pygame.transform.flip(image, True, False) for image in car_images],
-                                 'car', 5, self)
-        self.meteor_obstacle = Obstacle([1000, 515], meteor_images, 'meteor', 0, self)
+        self.car_obstacle = Obstacle([1800, 500], [pygame.transform.flip(image, True, False) for image in car_images],
+                                     'car', 5, self)
+        self.meteor_obstacle = Obstacle([1800, 515], meteor_images, 'meteor', 0, self)
+
+        # Add timer for obstacle objects.
+        self.obstacle_timer = pygame.USEREVENT + 1
+        pygame.time.set_timer(self.obstacle_timer, 1500)
 
         # Create sprite group for entities (player and obstacles).
         self.entities = pygame.sprite.Group()
 
         # Add entities to the sprite group.
-        self.entities.add(self.player, self.car_obstacle, self.meteor_obstacle)
+        self.entities.add(self.player)
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
@@ -87,6 +92,8 @@ class Game:
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+                if event.type == self.obstacle_timer:
+                    self.entities.add(random.choice([self.car_obstacle, self.meteor_obstacle, self.meteor_obstacle]))
 
             # Update all entities in the sprite group.
             self.entities.update()
