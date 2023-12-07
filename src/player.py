@@ -38,6 +38,10 @@ class Player(Entity):
         self.jump_speed = self.jump_height
         self.is_jumping = False
         self.is_sliding = False
+        self.slide_height = 600
+        self.slide_speed_reduction = 0.1
+        self.slide_end_position = 80
+        self.slide_speed = self.speed
 
         # Initialize animation-related variables.
         self.animation_speed = 6
@@ -80,24 +84,18 @@ class Player(Entity):
         Move the player to the left.
         """
         self.current_state = PlayerState.WALKING_LEFT
-        # Check if the new position is within the left boundary.
-        if self.position[0] - (self.speed + self.game.scrolling_bg_speed) >= 0:
-            self.position[0] -= (self.speed + self.game.scrolling_bg_speed)
-        # If not, set the position to the left boundary.
-        else:
-            self.position[0] = 0
+        # Make sure that the new position is within the left boundary.
+        new_x = self.position[0] - (self.speed + self.game.scrolling_bg_speed)
+        self.position[0] = max(new_x, 0)
 
     def move_right(self):
         """
         Move the player to the right.
         """
         self.current_state = PlayerState.WALKING_RIGHT
-        # Check if the new position is within the right boundary.
-        if self.position[0] + self.speed + self.rect.width <= self.game.width:
-            self.position[0] += self.speed
-        else:
-            # If not, set the position to the right boundary.
-            self.position[0] = self.game.width - self.rect.width
+        # Make sure that the new position is within the right boundary.
+        new_x = self.position[0] + self.speed
+        self.position[0] = min(new_x, self.game.width - self.rect.width)
 
     def jump(self):
         """
@@ -132,32 +130,29 @@ class Player(Entity):
         """
         if self.is_sliding:
             self.current_state = PlayerState.SLIDING
-            self.position[1] = 600
+            self.position[1] = self.slide_height
+
             # Gradually reduce speed during the slide.
-            self.speed -= 0.1
-            if self.speed > 0:
-                # Move the player to the right while sliding.
+            self.slide_speed -= self.slide_speed_reduction
+
+            if self.slide_speed > 0:
+                # Calculate new x position of player when he slides to the right.
                 if self.previous_walking_state == PlayerState.WALKING_RIGHT:
-                    # Check if the new position is within the right boundary.
-                    if self.position[0] + self.speed + self.rect.width <= self.game.width:
-                        self.position[0] += self.speed
-                    else:
-                        # If not, set the position to the right boundary.
-                        self.position[0] = self.game.width - self.rect.width
-                # Move the player to the left while sliding.
+                    new_x = self.position[0] + self.slide_speed
+                # Calculate new x position of player when he slides to the left.
                 elif self.previous_walking_state == PlayerState.WALKING_LEFT:
-                    # Check if the new position is within the left boundary.
-                    if self.position[0] - (self.speed + self.game.scrolling_bg_speed) >= 0:
-                        self.position[0] -= (self.speed + self.game.scrolling_bg_speed)
-                    else:
-                        # If not, set the position to the left boundary.
-                        self.position[0] = 0
+                    new_x = self.position[0] - (self.slide_speed + self.game.scrolling_bg_speed)
+
+                # Make sure that the new x position is within the boundaries.
+                new_x = max(0, min(new_x, self.game.width - self.rect.width))
+                # Move player to new x position.
+                self.position[0] = new_x
             else:
                 # End sliding when the speed is zero.
                 self.is_sliding = False
-                self.position[1] -= 80
+                self.position[1] -= self.slide_end_position
                 # Reset speed to the default value.
-                self.speed = 5
+                self.slide_speed = self.speed
 
     def update_animation(self):
         """
