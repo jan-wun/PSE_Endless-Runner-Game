@@ -4,6 +4,7 @@ from src.enums import GameState
 from src.menu import Menu
 from src.manager import AudioManager, ScoreManager
 from src.player import Player
+from src.obstacle import Obstacle
 
 
 class Game:
@@ -44,7 +45,22 @@ class Game:
         player_slide = [pygame.transform.scale_by(
             pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
 
+        # Create player object.
         self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self)
+
+        # Create obstacle objects.
+        car_images = [pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
+        meteor_images = [
+            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.5)]
+        self.car_obstacle = Obstacle([1000, 500], [pygame.transform.flip(image, True, False) for image in car_images],
+                                 'car', 5, self)
+        self.meteor_obstacle = Obstacle([1000, 515], meteor_images, 'meteor', 0, self)
+
+        # Create sprite group for entities (player and obstacles).
+        self.entities = pygame.sprite.Group()
+
+        # Add entities to the sprite group.
+        self.entities.add(self.player, self.car_obstacle, self.meteor_obstacle)
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
@@ -72,8 +88,8 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-            # Handle player input and update his position.
-            self.player.update()
+            # Update all entities in the sprite group.
+            self.entities.update()
 
             # Functionality for scrolling background.
             if self.current_state == GameState.PLAYING:
@@ -97,8 +113,12 @@ class Game:
         # Create seamless scrolling effect.
         self.screen.blit(self.background, (self.background_x + self.width, 0))
 
-        # Draw player on screen.
-        self.player.render(self.screen)
+        # Draw all entities in the sprite group.
+        self.entities.draw(self.screen)
+
+        # Show border around entities for debugging purpose only.
+        for entity in self.entities:
+            pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
 
         # Update the full display Surface to the screen.
         pygame.display.flip()
