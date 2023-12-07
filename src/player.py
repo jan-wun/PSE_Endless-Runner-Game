@@ -151,6 +151,8 @@ class Player(Entity):
                 # End sliding when the speed is zero.
                 self.is_sliding = False
                 self.position[1] -= self.slide_end_position
+                if self.previous_walking_state == PlayerState.WALKING_RIGHT:
+                    self.position[0] += self.image.get_width() - self.images_idle[0].get_width()
                 # Reset speed to the default value.
                 self.slide_speed = self.speed
 
