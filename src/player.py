@@ -64,9 +64,9 @@ class Player(Entity):
         keys = pygame.key.get_pressed()
 
         # Handle horizontal movement input.
-        if keys[pygame.K_RIGHT] and not self.is_sliding:
+        if keys[pygame.K_RIGHT] and not keys[pygame.K_LEFT] and not self.is_sliding:
             self.move_right()
-        elif keys[pygame.K_LEFT] and not self.is_sliding:
+        elif keys[pygame.K_LEFT] and not keys[pygame.K_RIGHT] and not self.is_sliding:
             self.move_left()
         else:
             self.current_state = PlayerState.IDLE
