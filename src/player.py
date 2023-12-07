@@ -42,6 +42,9 @@ class Player(Entity):
         self.slide_speed_reduction = 0.1
         self.slide_end_position = 80
         self.slide_speed = self.speed
+        # Cooldown parameters for sliding.
+        self.slide_cooldown = 0
+        self.slide_cooldown_max = 150
 
         # Initialize animation-related variables.
         self.animation_speed = 6
@@ -76,8 +79,10 @@ class Player(Entity):
             if not self.is_jumping and not self.is_sliding:
                 self.is_jumping = True
         elif keys[pygame.K_DOWN]:
-            if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding:
+            if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding and \
+                    self.slide_cooldown == 0:
                 self.is_sliding = True
+                self.slide_cooldown = self.slide_cooldown_max
 
     def move_left(self):
         """
@@ -196,6 +201,9 @@ class Player(Entity):
         self.handle_input()
         self.jump()
         self.slide()
+        print(self.slide_cooldown)
+        if self.slide_cooldown > 0:
+            self.slide_cooldown -= 1
         self.update_animation()
         # Set the previous walking state at the end of the update method.
         if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:
