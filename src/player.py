@@ -201,7 +201,6 @@ class Player(Entity):
         self.handle_input()
         self.jump()
         self.slide()
-        print(self.slide_cooldown)
         if self.slide_cooldown > 0:
             self.slide_cooldown -= 1
         self.update_animation()

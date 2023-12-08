@@ -34,17 +34,6 @@ class Entity(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.position[0], self.position[1])
 
-    def render(self, screen):
-        """
-        Renders the current image on the provided screen.
-
-        Args:
-            screen: The Pygame surface to render the image on.
-        """
-        screen.blit(self.image, self.position)
-        # Draw a border around the image for debugging purpose.
-        pygame.draw.rect(screen, (255, 0, 0), self.rect, 2)
-
     def check_collision(self, other_entity):
         """
         Checks for collision with another entity.
