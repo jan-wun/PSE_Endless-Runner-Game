@@ -101,6 +101,8 @@ class Game:
 
             # Update all entities in the sprite group.
             self.entities.update()
+            # Check for collision between player and obstacles.
+            self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
 
             # Functionality for scrolling background.
             if self.current_state == GameState.PLAYING:

@@ -17,10 +17,9 @@ class Obstacle(Entity):
             speed (int): The movement speed of the obstacle.
             game (object): Game object.
         """
-        super().__init__(position, images, None)
+        super().__init__(position, images, None, game)
         self.type = obstacle_type
         self.speed = speed
-        self.game = game
 
     def move(self):
         self.position[0] -= (self.game.scrolling_bg_speed + self.speed)

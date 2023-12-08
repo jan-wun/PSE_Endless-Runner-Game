@@ -19,12 +19,11 @@ class Player(Entity):
             images_slide (list): List of images for sliding animation.
             game (object): Game object.
         """
-        super().__init__(position, images_idle, PlayerState.IDLE)
+        super().__init__(position, images_idle, PlayerState.IDLE, game)
         # Set initial health.
         self.health = 1
 
         self.weapon = None
-        self.game = game
 
         # Set images for player movement animations.
         self.images_idle = images_idle
