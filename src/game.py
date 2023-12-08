@@ -50,16 +50,14 @@ class Game:
         self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self)
 
         # Create obstacle objects.
-        car_images = [pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
-        meteor_images = [
+        self.car_images = [
+            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
+        self.meteor_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.5)]
-        self.car_obstacle = Obstacle([1800, 500], [pygame.transform.flip(image, True, False) for image in car_images],
-                                     'car', 5, self)
-        self.meteor_obstacle = Obstacle([1800, 515], meteor_images, 'meteor', 0, self)
 
         # Add timer for obstacle objects.
         self.obstacle_timer = pygame.USEREVENT + 1
-        pygame.time.set_timer(self.obstacle_timer, 1500)
+        pygame.time.set_timer(self.obstacle_timer, 2000)
 
         # Create sprite group for entities (player and obstacles).
         self.entities = pygame.sprite.Group()
@@ -92,8 +90,14 @@ class Game:
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+                # Add obstacles.
                 if event.type == self.obstacle_timer:
-                    self.entities.add(random.choice([self.car_obstacle, self.meteor_obstacle, self.meteor_obstacle]))
+                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
+                                                              [pygame.transform.flip(image, True, False) for image in
+                                                               self.car_images], 'car', 5, self),
+                                                     Obstacle([self.width + random.randint(200, 500), 515],
+                                                              self.meteor_images, 'meteor', 0,
+                                                              self)]))
 
             # Update all entities in the sprite group.
             self.entities.update()

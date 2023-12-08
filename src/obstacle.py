@@ -25,7 +25,7 @@ class Obstacle(Entity):
     def move(self):
         self.position[0] -= (self.game.scrolling_bg_speed + self.speed)
         if self.position[0] <= 0 - self.image.get_width():
-            self.position[0] = self.game.width + 200
+            self.kill()
 
     def collide(self, player):
         """
