@@ -115,6 +115,9 @@ class Game:
                 if self.background_x <= -self.width:
                     self.background_x = 0
 
+                # Update distance.
+                self.distance += self.scrolling_bg_speed
+
                 # Render game objects to the screen.
                 self.render()
 
@@ -133,6 +136,10 @@ class Game:
         self.screen.blit(self.background, (self.background_x, 0))
         # Create seamless scrolling effect.
         self.screen.blit(self.background, (self.background_x + self.width, 0))
+
+        # Display current score on screen.
+        distance_surface = pygame.font.SysFont("comicsansms", 40).render(f"Score: {self.distance}", True, (0, 255, 0))
+        self.screen.blit(distance_surface, (10, 10))
 
         # Draw all entities in the sprite group.
         self.entities.draw(self.screen)
