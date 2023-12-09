@@ -70,7 +70,8 @@ class Game:
 
         # Initialize distance and highscore.
         self.distance = 0
-        self.highscore = 0
+        with open("data.txt", "r") as file:
+            self.highscore = int((file.readline().split("=")[1]))
 
         # Initialize menu, audio, and score manager.
         self.menu = Menu()
@@ -88,8 +89,7 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    pygame.quit()
-                    sys.exit()
+                    self.end_game()
 
                 if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
                     self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
@@ -115,12 +115,20 @@ class Game:
                 if self.background_x <= -self.width:
                     self.background_x = 0
 
+                # Update distance.
+                self.distance += self.scrolling_bg_speed
+
                 # Render game objects to the screen.
                 self.render()
 
             elif self.current_state == GameState.GAME_OVER:
+                # Update highscore if necessary.
+                if self.distance > self.highscore:
+                    self.highscore = self.distance
+                    with open("data.txt", "w") as file:
+                        file.write(f"highscore={self.highscore}")
                 # Show game over screen.
-                self.game_over_screen.show(self.screen)
+                self.game_over_screen.show(self.screen, self.distance, self.highscore)
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -133,6 +141,10 @@ class Game:
         self.screen.blit(self.background, (self.background_x, 0))
         # Create seamless scrolling effect.
         self.screen.blit(self.background, (self.background_x + self.width, 0))
+
+        # Display current score on screen.
+        distance_surface = pygame.font.SysFont("comicsansms", 40).render(f"Score: {self.distance}", True, (0, 255, 0))
+        self.screen.blit(distance_surface, (10, 10))
 
         # Draw all entities in the sprite group.
         self.entities.draw(self.screen)
@@ -154,7 +166,8 @@ class Game:
         """
         Ends the game.
         """
-        pass
+        pygame.quit()
+        sys.exit()
 
     def restart_game(self):
         """
@@ -166,6 +179,9 @@ class Game:
 
         # Reset the player.
         self.player.reset()
+
+        # Reset travelled distance.
+        self.distance = 0
 
         # Set current game state back to playing.
         self.current_state = GameState.PLAYING
