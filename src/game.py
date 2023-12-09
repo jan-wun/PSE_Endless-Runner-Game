@@ -84,33 +84,43 @@ class Game:
         # Create a clock object to control the frame rate.
         clock = pygame.time.Clock()
 
-        while self.current_state == GameState.PLAYING:
+        while True:
             # Handle events (e.q., quitting the game).
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                # Add obstacles.
-                if event.type == self.obstacle_timer:
-                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
-                                                              [pygame.transform.flip(image, True, False) for image in
-                                                               self.car_images], 'car', 5, self),
-                                                     Obstacle([self.width + random.randint(200, 500), 515],
-                                                              self.meteor_images, 'meteor', 0,
-                                                              self)]))
 
-            # Update all entities in the sprite group.
-            self.entities.update()
+                if self.current_state == GameState.PLAYING:
+                    # Add obstacles.
+                    if event.type == self.obstacle_timer:
+                        self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
+                                                                  [pygame.transform.flip(image, True, False) for image in
+                                                                   self.car_images], 'car', 5, self),
+                                                         Obstacle([self.width + random.randint(200, 500), 515],
+                                                                  self.meteor_images, 'meteor', 0,
+                                                                  self)]))
+                else:
+                    if event.type == pygame.K_SPACE:
+                        self.current_state == GameState.PLAYING
 
-            # Functionality for scrolling background.
             if self.current_state == GameState.PLAYING:
-                self.background_x -= self.scrolling_bg_speed
-                # Check if the background has scrolled off the screen and reset position.
-                if self.background_x <= -self.width:
-                    self.background_x = 0
+                # Update all entities in the sprite group.
+                self.entities.update()
+                # Check for collision between player and obstacles.
+                self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
 
-            # Render game objects to the screen.
-            self.render()
+                # Functionality for scrolling background.
+                if self.current_state == GameState.PLAYING:
+                    self.background_x -= self.scrolling_bg_speed
+                    # Check if the background has scrolled off the screen and reset position.
+                    if self.background_x <= -self.width:
+                        self.background_x = 0
+
+                # Render game objects to the screen.
+                self.render()
+            elif self.current_state == GameState.GAME_OVER:
+                print("Game Over!")
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)

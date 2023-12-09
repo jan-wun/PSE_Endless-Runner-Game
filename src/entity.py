@@ -1,4 +1,5 @@
 import pygame
+from src.enums import GameState
 
 
 class Entity(pygame.sprite.Sprite):
@@ -6,7 +7,7 @@ class Entity(pygame.sprite.Sprite):
     Base class for game entities.
     """
 
-    def __init__(self, position, image_list, current_state):
+    def __init__(self, position, image_list, current_state, game):
         """
         Initializes an entity with a given position, list of images, and current state.
 
@@ -14,6 +15,7 @@ class Entity(pygame.sprite.Sprite):
             position (list): The initial position (x, y) of the entity.
             image_list (list): List of images for animation.
             current_state: The current state of the entity.
+            game (object): Game object.
         """
         super().__init__()
         self.position = position
@@ -26,6 +28,8 @@ class Entity(pygame.sprite.Sprite):
         # Initial position of image.
         self.rect.topleft = (self.position[0], self.position[1])
 
+        self.game = game
+
     def update(self):
         """
         Update logic that is the same for all entities.
@@ -34,11 +38,12 @@ class Entity(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.position[0], self.position[1])
 
-    def check_collision(self, other_entity):
+    def check_collision(self, group):
         """
-        Checks for collision with another entity.
+        Checks for collision with sprite group.
 
         Args:
-            other_entity: The entity to check for collision with.
+            group: The sprite group to check for collision with.
         """
-        pass
+        if pygame.sprite.spritecollideany(self, group):
+            self.game.current_state = GameState.GAME_OVER
