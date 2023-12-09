@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 from src.enums import GameState
-from src.menu import Menu
+from src.menu import Menu, GameOverMenu
 from src.manager import AudioManager, ScoreManager
 from src.player import Player
 from src.obstacle import Obstacle
@@ -30,7 +30,7 @@ class Game:
         self.fps = 70
 
         # Load background image.
-        self.background = pygame.image.load("assets/images/background.png")
+        self.background = pygame.image.load("assets/images/background.png").convert_alpha()
 
         # Initialize background position and scrolling speed.
         self.background_x = 0
@@ -47,7 +47,7 @@ class Game:
             pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
 
         # Create player object.
-        self.player = Player([100, 520], player_idle, player_walk, player_jump, player_slide, self)
+        self.player = Player(player_idle, player_walk, player_jump, player_slide, self)
 
         # Create obstacle objects.
         self.car_images = [
@@ -74,6 +74,7 @@ class Game:
 
         # Initialize menu, audio, and score manager.
         self.menu = Menu()
+        self.game_over_screen = GameOverMenu()
         self.audio_manager = AudioManager()
         self.score_manager = ScoreManager()
 
@@ -85,24 +86,22 @@ class Game:
         clock = pygame.time.Clock()
 
         while True:
-            # Handle events (e.q., quitting the game).
             for event in pygame.event.get():
-                if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     pygame.quit()
                     sys.exit()
 
-                if self.current_state == GameState.PLAYING:
-                    # Add obstacles.
-                    if event.type == self.obstacle_timer:
-                        self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
-                                                                  [pygame.transform.flip(image, True, False) for image in
-                                                                   self.car_images], 'car', 5, self),
-                                                         Obstacle([self.width + random.randint(200, 500), 515],
-                                                                  self.meteor_images, 'meteor', 0,
-                                                                  self)]))
-                else:
-                    if event.type == pygame.K_SPACE:
-                        self.current_state == GameState.PLAYING
+                if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
+                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
+                                                              [pygame.transform.flip(image, True, False) for image in
+                                                               self.car_images], 'car', 5, self),
+                                                     Obstacle([self.width + random.randint(200, 500), 515],
+                                                              self.meteor_images, 'meteor', 0,
+                                                              self)]))
+
+                if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
+                        event.key == pygame.K_SPACE:
+                    self.restart_game()
 
             if self.current_state == GameState.PLAYING:
                 # Update all entities in the sprite group.
@@ -111,16 +110,17 @@ class Game:
                 self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
 
                 # Functionality for scrolling background.
-                if self.current_state == GameState.PLAYING:
-                    self.background_x -= self.scrolling_bg_speed
-                    # Check if the background has scrolled off the screen and reset position.
-                    if self.background_x <= -self.width:
-                        self.background_x = 0
+                self.background_x -= self.scrolling_bg_speed
+                # Check if the background has scrolled off the screen and reset position.
+                if self.background_x <= -self.width:
+                    self.background_x = 0
 
                 # Render game objects to the screen.
                 self.render()
+
             elif self.current_state == GameState.GAME_OVER:
-                print("Game Over!")
+                # Show game over screen.
+                self.game_over_screen.show(self.screen)
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -160,7 +160,15 @@ class Game:
         """
         Restarts the game.
         """
-        pass
+        # Kill all obstacles.
+        for obstacle in self.entities.sprites()[1:]:
+            obstacle.kill()
+
+        # Reset the player.
+        self.player.reset()
+
+        # Set current game state back to playing.
+        self.current_state = GameState.PLAYING
 
     def show_settings_menu(self):
         """

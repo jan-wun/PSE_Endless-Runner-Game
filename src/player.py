@@ -7,19 +7,21 @@ class Player(Entity):
     """
     Class representing the player in the game.
     """
-    def __init__(self, position, images_idle, images_walk, images_jump, images_slide, game):
+    def __init__(self, images_idle, images_walk, images_jump, images_slide, game):
         """
         Initializes the player with a given position and animation images.
 
         Args:
-            position (list): The initial position [x, y] of the player.
             images_idle (list): List of images for idle animation.
             images_walk (list): List of images for walking animation.
             images_jump (list): List of images for jumping animation.
             images_slide (list): List of images for sliding animation.
             game (object): Game object.
         """
-        super().__init__(position, images_idle, PlayerState.IDLE, game)
+        # Initial position of the player.
+        self.position = [100, 520]
+
+        super().__init__(self.position, images_idle, PlayerState.IDLE, game)
         # Set initial health.
         self.health = 1
 
@@ -207,3 +209,9 @@ class Player(Entity):
         if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:
             self.previous_walking_state = self.current_state
         super().update()
+
+    def reset(self):
+        """
+        Resets player (position, animation, state, ...) which is necessary for restarting the game.
+        """
+        self.__init__(self.images_idle, self.images_walk, self.images_jump, self.images_slide, self.game)
