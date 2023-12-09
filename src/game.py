@@ -70,7 +70,8 @@ class Game:
 
         # Initialize distance and highscore.
         self.distance = 0
-        self.highscore = 0
+        with open("data.txt", "r") as file:
+            self.highscore = int((file.readline().split("=")[1]))
 
         # Initialize menu, audio, and score manager.
         self.menu = Menu()
@@ -88,8 +89,7 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    pygame.quit()
-                    sys.exit()
+                    self.end_game()
 
                 if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
                     self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
@@ -122,8 +122,13 @@ class Game:
                 self.render()
 
             elif self.current_state == GameState.GAME_OVER:
+                # Update highscore if necessary.
+                if self.distance > self.highscore:
+                    self.highscore = self.distance
+                    with open("data.txt", "w") as file:
+                        file.write(f"highscore={self.highscore}")
                 # Show game over screen.
-                self.game_over_screen.show(self.screen, self.distance)
+                self.game_over_screen.show(self.screen, self.distance, self.highscore)
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -161,7 +166,8 @@ class Game:
         """
         Ends the game.
         """
-        pass
+        pygame.quit()
+        sys.exit()
 
     def restart_game(self):
         """
