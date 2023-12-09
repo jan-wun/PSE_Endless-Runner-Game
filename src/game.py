@@ -123,7 +123,7 @@ class Game:
 
             elif self.current_state == GameState.GAME_OVER:
                 # Show game over screen.
-                self.game_over_screen.show(self.screen)
+                self.game_over_screen.show(self.screen, self.distance)
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -173,6 +173,9 @@ class Game:
 
         # Reset the player.
         self.player.reset()
+
+        # Reset travelled distance.
+        self.distance = 0
 
         # Set current game state back to playing.
         self.current_state = GameState.PLAYING
