@@ -1,11 +1,12 @@
 import pygame
 import sys
 import random
-from src.enums import GameState
+from src.enums import GameState, EnemyType
 from src.menu import Menu, GameOverMenu
 from src.manager import AudioManager, ScoreManager
 from src.player import Player
 from src.obstacle import Obstacle
+from src.enemy import Enemy
 
 
 class Game:
@@ -59,6 +60,10 @@ class Game:
         self.obstacle_timer = pygame.USEREVENT + 1
         pygame.time.set_timer(self.obstacle_timer, 2000)
 
+        # Add timer for enemy objects.
+        self.enemy_timer = pygame.USEREVENT + 2
+        pygame.time.set_timer(self.enemy_timer, 5000)
+
         # Create sprite group for entities (player and obstacles).
         self.entities = pygame.sprite.Group()
 
@@ -98,6 +103,11 @@ class Game:
                                                      Obstacle([self.width + random.randint(200, 500), 515],
                                                               self.meteor_images, 'meteor', 0,
                                                               self)]))
+                if self.current_state == GameState.PLAYING and event.type == self.enemy_timer:
+                    enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+                    if not any(entity.type == enemy_choice for entity in self.entities.sprites()[1:]):
+                        enemy_position = [400, 100] if enemy_choice == EnemyType.DRONE else [800, 512]
+                        self.entities.add(Enemy(enemy_position, enemy_choice, self))
 
                 if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
                         event.key == pygame.K_SPACE:
@@ -173,9 +183,9 @@ class Game:
         """
         Restarts the game.
         """
-        # Kill all obstacles.
-        for obstacle in self.entities.sprites()[1:]:
-            obstacle.kill()
+        # Kill all obstacles and enemies.
+        for entity in self.entities.sprites()[1:]:
+            entity.kill()
 
         # Reset the player.
         self.player.reset()
