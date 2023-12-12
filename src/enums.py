@@ -28,3 +28,9 @@ class EnemyType(Enum):
     """
     DRONE = "drone"
     ROBOT = "robot"
+
+
+class EnemyState(Enum):
+    IDLE = "idle"
+    WALKING_RIGHT = "walking_right"
+    WALKING_LEFT = "walking_left"

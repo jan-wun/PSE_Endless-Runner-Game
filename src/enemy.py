@@ -1,6 +1,6 @@
 import pygame
 from src.entity import Entity
-from src.enums import EnemyType
+from src.enums import EnemyType, EnemyState
 
 
 class Enemy(Entity):
@@ -26,13 +26,34 @@ class Enemy(Entity):
             self.image_list = [pygame.transform.scale_by(
                 pygame.image.load(f"assets/images/enemies/robot/idle/idle{i}.png").convert_alpha(), 3) for i in
                                range(1, 5)]
-        super().__init__(position, self.image_list, None, game)
+        super().__init__(position, self.image_list, EnemyState.IDLE, game)
+        self.speed = 1 if self.type == EnemyType.ROBOT else 3
 
-    def move(self):
+    def handle_movement(self):
         """
         Handles enemy movement logic.
         """
-        pass
+        if self.type == EnemyType.DRONE:
+            if not self.current_state == EnemyState.WALKING_LEFT and self.position[0] < self.game.width - self.rect.width:
+                self.move_right()
+            else:
+                if self.position[0] > 0:
+                    self.move_left()
+                else:
+                    self.current_state = EnemyState.WALKING_RIGHT
+        elif self.type == EnemyType.ROBOT:
+            if self.position[0] > self.game.player.position[0]:
+                self.move_left()
+            elif self.position[0] < self.game.player.position[0]:
+                self.move_right()
+
+    def move_left(self):
+        self.current_state = EnemyState.WALKING_LEFT
+        self.position[0] -= (self.speed + self.game.scrolling_bg_speed)
+
+    def move_right(self):
+        self.current_state = EnemyState.WALKING_RIGHT
+        self.position[0] += self.speed
 
     def attack(self):
         """
@@ -40,6 +61,7 @@ class Enemy(Entity):
         """
         pass
 
+
     def update(self):
-        self.move()
+        self.handle_movement()
         super().update()
