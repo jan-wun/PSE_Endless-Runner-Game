@@ -54,7 +54,7 @@ class Game:
         self.car_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
         self.meteor_images = [
-            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.5)]
+            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.25)]
 
         # Add timer for obstacle objects.
         self.obstacle_timer = pygame.USEREVENT + 1
@@ -97,10 +97,10 @@ class Game:
                     self.end_game()
 
                 if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
-                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
+                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
                                                               [pygame.transform.flip(image, True, False) for image in
                                                                self.car_images], 'car', 5, self),
-                                                     Obstacle([self.width + random.randint(200, 500), 515],
+                                                     Obstacle([self.width + random.randint(200, 500), 585],
                                                               self.meteor_images, 'meteor', 0,
                                                               self)]))
                 if self.current_state == GameState.PLAYING and event.type == self.enemy_timer:
