@@ -70,6 +70,9 @@ class Game:
         # Add entities to the sprite group.
         self.entities.add(self.player)
 
+        # Create sprite group for projectiles.
+        self.projectiles = pygame.sprite.Group()
+
         # Initialize game state.
         self.current_state = GameState.PLAYING
 
@@ -116,6 +119,8 @@ class Game:
             if self.current_state == GameState.PLAYING:
                 # Update all entities in the sprite group.
                 self.entities.update()
+                # Update all projectiles.
+                self.projectiles.update()
                 # Check for collision between player and obstacles.
                 self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
 
@@ -163,6 +168,9 @@ class Game:
         for entity in self.entities:
             pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
 
+        # Draw projectiles.
+        self.projectiles.draw(self.screen)
+
         # Update the full display Surface to the screen.
         pygame.display.flip()
 
@@ -186,6 +194,9 @@ class Game:
         # Kill all obstacles and enemies.
         for entity in self.entities.sprites()[1:]:
             entity.kill()
+
+        # Kill all projectiles.
+        [projectile.kill() for projectile in self.projectiles]
 
         # Reset the player.
         self.player.reset()
