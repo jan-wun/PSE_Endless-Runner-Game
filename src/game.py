@@ -170,6 +170,9 @@ class Game:
         for entity in self.entities:
             pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
 
+        # Draw weapon.
+        self.screen.blit(self.player.weapon.image, self.player.weapon.position)
+
         # Draw projectiles.
         self.projectiles.draw(self.screen)
 

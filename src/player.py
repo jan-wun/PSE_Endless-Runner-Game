@@ -1,6 +1,7 @@
 import pygame
 from src.entity import Entity
-from src.enums import PlayerState
+from src.enums import PlayerState, WeaponType, GameState
+from src.weapon import Weapon
 
 
 class Player(Entity):
@@ -25,7 +26,10 @@ class Player(Entity):
         # Set initial health.
         self.health = 1
 
-        self.weapon = None
+        # Create a weapon for the player.
+        weapon_images = [pygame.transform.scale_by(pygame.image.load("assets/images/player/weapon/weapon1_right.png").convert_alpha(), 2.5),
+                         pygame.transform.scale_by(pygame.image.load("assets/images/player/weapon/weapon1_left.png").convert_alpha(), 2.5)]
+        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], weapon_images, WeaponType.DEFAULT, 1, game, self)
 
         # Set images for player movement animations.
         self.images_idle = images_idle
@@ -43,6 +47,7 @@ class Player(Entity):
         self.slide_speed_reduction = 0.1
         self.slide_end_position = 80
         self.slide_speed = self.speed
+        self.shoot_pressed = False
         # Cooldown parameters for sliding.
         self.slide_cooldown = 0
         self.slide_cooldown_max = 150
@@ -67,23 +72,31 @@ class Player(Entity):
     def handle_input(self):
         keys = pygame.key.get_pressed()
 
-        # Handle horizontal movement input.
-        if keys[pygame.K_RIGHT] and not keys[pygame.K_LEFT] and not self.is_sliding:
-            self.move_right()
-        elif keys[pygame.K_LEFT] and not keys[pygame.K_RIGHT] and not self.is_sliding:
-            self.move_left()
-        else:
-            self.current_state = PlayerState.IDLE
+        if self.game.current_state == GameState.PLAYING:
+            # Handle horizontal movement input.
+            if keys[pygame.K_RIGHT] and not keys[pygame.K_LEFT] and not self.is_sliding:
+                self.move_right()
+            elif keys[pygame.K_LEFT] and not keys[pygame.K_RIGHT] and not self.is_sliding:
+                self.move_left()
+            else:
+                self.current_state = PlayerState.IDLE
 
-        # Handle jump and slide input.
-        if keys[pygame.K_UP]:
-            if not self.is_jumping and not self.is_sliding:
-                self.is_jumping = True
-        elif keys[pygame.K_DOWN]:
-            if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding and \
-                    self.slide_cooldown == 0:
-                self.is_sliding = True
-                self.slide_cooldown = self.slide_cooldown_max
+            # Handle jump and slide input.
+            if keys[pygame.K_UP]:
+                if not self.is_jumping and not self.is_sliding:
+                    self.is_jumping = True
+            elif keys[pygame.K_DOWN]:
+                if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding and \
+                        self.slide_cooldown == 0:
+                    self.is_sliding = True
+                    self.slide_cooldown = self.slide_cooldown_max
+
+            # Handle shooting input.
+            if keys[pygame.K_SPACE] and not self.shoot_pressed:
+                self.shoot()
+                self.shoot_pressed = True
+            elif not keys[pygame.K_SPACE]:
+                self.shoot_pressed = False
 
     def move_left(self):
         """
@@ -196,7 +209,8 @@ class Player(Entity):
         """
         Make the player shoot (if a weapon is equipped).
         """
-        pass
+        if self.weapon is not None:
+            self.weapon.fire()
 
     def update(self):
         self.handle_input()
@@ -208,6 +222,8 @@ class Player(Entity):
         # Set the previous walking state at the end of the update method.
         if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:
             self.previous_walking_state = self.current_state
+        # Update weapon.
+        self.weapon.update()
         super().update()
 
     def reset(self):
