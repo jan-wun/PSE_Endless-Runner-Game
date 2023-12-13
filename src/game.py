@@ -1,11 +1,12 @@
 import pygame
 import sys
 import random
-from src.enums import GameState
+from src.enums import GameState, EnemyType
 from src.menu import Menu, GameOverMenu
 from src.manager import AudioManager, ScoreManager
 from src.player import Player
 from src.obstacle import Obstacle
+from src.enemy import Enemy
 
 
 class Game:
@@ -53,17 +54,24 @@ class Game:
         self.car_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
         self.meteor_images = [
-            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.5)]
+            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.25)]
 
         # Add timer for obstacle objects.
         self.obstacle_timer = pygame.USEREVENT + 1
         pygame.time.set_timer(self.obstacle_timer, 2000)
+
+        # Add timer for enemy objects.
+        self.enemy_timer = pygame.USEREVENT + 2
+        pygame.time.set_timer(self.enemy_timer, 5000)
 
         # Create sprite group for entities (player and obstacles).
         self.entities = pygame.sprite.Group()
 
         # Add entities to the sprite group.
         self.entities.add(self.player)
+
+        # Create sprite group for projectiles.
+        self.projectiles = pygame.sprite.Group()
 
         # Initialize game state.
         self.current_state = GameState.PLAYING
@@ -92,12 +100,17 @@ class Game:
                     self.end_game()
 
                 if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
-                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 500],
+                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
                                                               [pygame.transform.flip(image, True, False) for image in
                                                                self.car_images], 'car', 5, self),
-                                                     Obstacle([self.width + random.randint(200, 500), 515],
+                                                     Obstacle([self.width + random.randint(200, 500), 585],
                                                               self.meteor_images, 'meteor', 0,
                                                               self)]))
+                if self.current_state == GameState.PLAYING and event.type == self.enemy_timer:
+                    enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+                    if not any(entity.type == enemy_choice for entity in self.entities.sprites()[1:]):
+                        enemy_position = [400, 100] if enemy_choice == EnemyType.DRONE else [800, 512]
+                        self.entities.add(Enemy(enemy_position, enemy_choice, self))
 
                 if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
                         event.key == pygame.K_SPACE:
@@ -106,8 +119,12 @@ class Game:
             if self.current_state == GameState.PLAYING:
                 # Update all entities in the sprite group.
                 self.entities.update()
+                # Update all projectiles.
+                self.projectiles.update()
                 # Check for collision between player and obstacles.
                 self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
+                # Check for collision between player and projectiles.
+                self.entities.sprites()[0].check_collision(self.projectiles)
 
                 # Functionality for scrolling background.
                 self.background_x -= self.scrolling_bg_speed
@@ -153,6 +170,9 @@ class Game:
         for entity in self.entities:
             pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
 
+        # Draw projectiles.
+        self.projectiles.draw(self.screen)
+
         # Update the full display Surface to the screen.
         pygame.display.flip()
 
@@ -173,9 +193,12 @@ class Game:
         """
         Restarts the game.
         """
-        # Kill all obstacles.
-        for obstacle in self.entities.sprites()[1:]:
-            obstacle.kill()
+        # Kill all obstacles and enemies.
+        for entity in self.entities.sprites()[1:]:
+            entity.kill()
+
+        # Kill all projectiles.
+        [projectile.kill() for projectile in self.projectiles]
 
         # Reset the player.
         self.player.reset()

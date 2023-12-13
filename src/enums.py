@@ -20,3 +20,17 @@ class PlayerState(Enum):
     WALKING_LEFT = "walking_left"
     JUMPING = "jumping"
     SLIDING = "sliding"
+
+
+class EnemyType(Enum):
+    """
+    Enumeration representing the type of an enemy.
+    """
+    DRONE = "drone"
+    ROBOT = "robot"
+
+
+class EnemyState(Enum):
+    IDLE = "idle"
+    WALKING_RIGHT = "walking_right"
+    WALKING_LEFT = "walking_left"
