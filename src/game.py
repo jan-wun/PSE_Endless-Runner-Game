@@ -123,6 +123,8 @@ class Game:
                 self.projectiles.update()
                 # Check for collision between player and obstacles.
                 self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
+                # Check for collision between player and projectiles.
+                self.entities.sprites()[0].check_collision(self.projectiles)
 
                 # Functionality for scrolling background.
                 self.background_x -= self.scrolling_bg_speed
