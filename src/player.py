@@ -47,7 +47,7 @@ class Player(Entity):
         self.slide_speed_reduction = 0.1
         self.slide_end_position = 80
         self.slide_speed = self.speed
-        self.shoot_pressed = False
+        self.shoot_pressed = True
         # Cooldown parameters for sliding.
         self.slide_cooldown = 0
         self.slide_cooldown_max = 150
