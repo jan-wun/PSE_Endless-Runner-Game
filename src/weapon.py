@@ -31,11 +31,15 @@ class Weapon(Entity):
         """
         Fires the weapon.
         """
-        projectile_position = [self.position[0] + self.rect.width, self.position[1] + 5]
-        projectile_velocity = [self.shot_speed, 0] if self.image == self.image_list[0] else [
-            -(self.shot_speed + self.game.scrolling_bg_speed), 0]
+        if self.image == self.image_list[0]:
+            projectile_x_position = self.position[0] + self.rect.width
+            projectile_velocity = [self.shot_speed, 0]
+        else:
+            projectile_x_position = self.position[0]
+            projectile_velocity = [-(self.shot_speed + self.game.scrolling_bg_speed), 0]
         self.game.projectiles.add(
-            Projectile(projectile_position, projectile_velocity, [self.projectile_image], self.game))
+            Projectile([projectile_x_position, self.position[1] + 5], projectile_velocity,
+                       [self.projectile_image], self.game))
 
     def update(self):
         """
