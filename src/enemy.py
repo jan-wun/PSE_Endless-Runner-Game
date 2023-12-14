@@ -52,9 +52,9 @@ class Enemy(Entity):
                 else:
                     self.current_state = EnemyState.WALKING_RIGHT
         elif self.type == EnemyType.ROBOT:
-            if self.position[0] > self.game.player.position[0]:
+            if self.position[0] > self.game.player.sprite.position[0]:
                 self.move_left()
-            elif self.position[0] < self.game.player.position[0]:
+            elif self.position[0] < self.game.player.sprite.position[0]:
                 self.move_right()
 
     def move_left(self):
@@ -76,7 +76,7 @@ class Enemy(Entity):
                     projectile_position = [self.position[0] + self.rect.width / 2, self.position[1] + self.rect.height]
                     self.game.projectiles.add(Projectile(projectile_position, [0, 5], [self.projectile_image], self.game))
                 elif self.type == EnemyType.ROBOT:
-                    if self.game.player.position[0] < self.position[0]:
+                    if self.game.player.sprite.position[0] < self.position[0]:
                         projectile_position = [self.position[0], self.position[1] + 40]
                         self.game.projectiles.add(Projectile(projectile_position, [-5 - self.game.scrolling_bg_speed, 0], [self.projectile_image], self.game))
                     else:
