@@ -1,6 +1,7 @@
 import pygame
 from src.entity import Entity
-from src.enums import PlayerState
+from src.enums import PlayerState, WeaponType
+from src.projectile import Projectile
 
 
 class Weapon(Entity):
@@ -21,13 +22,20 @@ class Weapon(Entity):
         self.type = weapon_type
         self.damage = damage
         self.player = player
+        if self.type == WeaponType.DEFAULT:
+            self.projectile_image = pygame.transform.scale_by(
+                pygame.image.load("assets/images/bullets/default.png").convert_alpha(), 3)
+            self.shot_speed = 5
 
     def fire(self):
         """
         Fires the weapon.
         """
-        # Set the weapon's position based on the player's position.
-        print("Feuer")
+        projectile_position = [self.position[0] + self.rect.width, self.position[1] + 5]
+        projectile_velocity = [self.shot_speed, 0] if self.image == self.image_list[0] else [
+            -(self.shot_speed + self.game.scrolling_bg_speed), 0]
+        self.game.projectiles.add(
+            Projectile(projectile_position, projectile_velocity, [self.projectile_image], self.game))
 
     def update(self):
         """

@@ -25,7 +25,7 @@ class Enemy(Entity):
                 pygame.image.load(f"assets/images/enemies/drone/idle/idle{i}.png").convert_alpha(), 3) for i in
                                range(1, 5)]
             self.projectile_image = pygame.transform.scale_by(
-                pygame.image.load(f"assets/images/capsule.png").convert_alpha(),
+                pygame.image.load(f"assets/images/bullets/capsule.png").convert_alpha(),
                 1.5)
 
         else:
@@ -33,7 +33,7 @@ class Enemy(Entity):
                 pygame.image.load(f"assets/images/enemies/robot/idle/idle{i}.png").convert_alpha(), 3) for i in
                                range(1, 5)]
             self.projectile_image = pygame.transform.scale_by(
-                pygame.image.load(f"assets/images/projectile.png").convert_alpha(),
+                pygame.image.load(f"assets/images/bullets/projectile.png").convert_alpha(),
                 1.5)
         super().__init__(position, self.image_list, EnemyState.IDLE, game)
         self.speed = 1 if self.type == EnemyType.ROBOT else 3
