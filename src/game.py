@@ -2,7 +2,7 @@ import pygame
 import sys
 import random
 from src.enums import GameState, EnemyType
-from src.menu import Menu, GameOverMenu
+from src.menu import Menu, GameOverMenu, PauseMenu
 from src.manager import AudioManager, ScoreManager
 from src.player import Player
 from src.obstacle import Obstacle
@@ -85,6 +85,11 @@ class Game:
         # Initialize menu, audio, and score manager.
         self.menu = Menu()
         self.game_over_screen = GameOverMenu()
+        self.pause_button_image = pygame.transform.scale_by(
+            pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
+        self.pause_button_rect = self.pause_button_image.get_rect(
+            topright=(self.width - 10, 10))
+        self.pause_screen = PauseMenu()
         self.audio_manager = AudioManager()
         self.score_manager = ScoreManager()
 
@@ -97,6 +102,7 @@ class Game:
 
         while True:
             for event in pygame.event.get():
+                mouse_x, mouse_y = pygame.mouse.get_pos()
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.end_game()
 
@@ -116,6 +122,11 @@ class Game:
                 if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
                         event.key == pygame.K_SPACE:
                     self.restart_game()
+                if self.current_state == GameState.PLAYING and (event.type == pygame.KEYDOWN and
+                                                                event.key == pygame.K_p) or \
+                        (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.pause_button_rect.collidepoint(
+                            mouse_x, mouse_y)):
+                    self.pause_game()
 
             if self.current_state == GameState.PLAYING:
                 # Update player.
@@ -146,6 +157,16 @@ class Game:
 
                 # Render game objects to the screen.
                 self.render()
+
+            elif self.current_state == GameState.PAUSED:
+                result = self.pause_screen.handle_input(self.screen)
+                if result == "resume":
+                    self.current_state = GameState.PLAYING
+                elif result == "main_menu":
+                    print("Main Menu - tbdp")
+                    #self.show_main_menu()
+                elif result == "quit":
+                    self.end_game()
 
             elif self.current_state == GameState.GAME_OVER:
                 # Update highscore if necessary.
@@ -190,6 +211,9 @@ class Game:
         # Draw projectiles.
         self.projectiles.draw(self.screen)
 
+        # Display pause button in the top right corner.
+        self.screen.blit(self.pause_button_image, self.pause_button_rect)
+
         # Update the full display Surface to the screen.
         pygame.display.flip()
 
@@ -197,7 +221,7 @@ class Game:
         """
         Pauses the game.
         """
-        pass
+        self.current_state = GameState.PAUSED
 
     def end_game(self):
         """
