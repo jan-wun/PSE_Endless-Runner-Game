@@ -47,9 +47,6 @@ class Game:
         player_slide = [pygame.transform.scale_by(
             pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
 
-        # Create player object.
-        self.player = Player(player_idle, player_walk, player_jump, player_slide, self)
-
         # Create obstacle objects.
         self.car_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
@@ -64,11 +61,15 @@ class Game:
         self.enemy_timer = pygame.USEREVENT + 2
         pygame.time.set_timer(self.enemy_timer, 5000)
 
-        # Create sprite group for entities (player and obstacles).
-        self.entities = pygame.sprite.Group()
+        # Create sprite group for obstacles.
+        self.obstacles = pygame.sprite.Group()
 
-        # Add entities to the sprite group.
-        self.entities.add(self.player)
+        # Create sprite group for enemies.
+        self.enemies = pygame.sprite.Group()
+
+        # Create sprite group single for player.
+        self.player = pygame.sprite.GroupSingle()
+        self.player.add(Player(player_idle, player_walk, player_jump, player_slide, self))
 
         # Create sprite group for projectiles.
         self.projectiles = pygame.sprite.Group()
@@ -100,7 +101,7 @@ class Game:
                     self.end_game()
 
                 if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
-                    self.entities.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
+                    self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
                                                               [pygame.transform.flip(image, True, False) for image in
                                                                self.car_images], 'car', 5, self),
                                                      Obstacle([self.width + random.randint(200, 500), 585],
@@ -108,23 +109,31 @@ class Game:
                                                               self)]))
                 if self.current_state == GameState.PLAYING and event.type == self.enemy_timer:
                     enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
-                    if not any(entity.type == enemy_choice for entity in self.entities.sprites()[1:]):
+                    if not any(enemy.type == enemy_choice for enemy in self.enemies):
                         enemy_position = [400, 100] if enemy_choice == EnemyType.DRONE else [800, 512]
-                        self.entities.add(Enemy(enemy_position, enemy_choice, self))
+                        self.enemies.add(Enemy(enemy_position, enemy_choice, self))
 
                 if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
                         event.key == pygame.K_SPACE:
                     self.restart_game()
 
             if self.current_state == GameState.PLAYING:
-                # Update all entities in the sprite group.
-                self.entities.update()
+                # Update player.
+                self.player.update()
+                # Update all obstacles in the sprite group.
+                self.obstacles.update()
+                # Update all enemies in the sprite group.
+                self.enemies.update()
                 # Update all projectiles.
                 self.projectiles.update()
                 # Check for collision between player and obstacles.
-                self.entities.sprites()[0].check_collision(self.entities.sprites()[1:])
+                self.player.sprite.check_collision(self.obstacles)
+                # Check for collision between player and enemies.
+                self.player.sprite.check_collision(self.enemies)
                 # Check for collision between player and projectiles.
-                self.entities.sprites()[0].check_collision(self.projectiles)
+                self.player.sprite.check_collision(self.projectiles)
+                # Check for collision between enemies and projectiles.
+                [enemy.check_collision(self.projectiles) for enemy in self.enemies]
 
                 # Functionality for scrolling background.
                 self.background_x -= self.scrolling_bg_speed
@@ -163,12 +172,20 @@ class Game:
         distance_surface = pygame.font.SysFont("comicsansms", 40).render(f"Score: {self.distance}", True, (0, 255, 0))
         self.screen.blit(distance_surface, (10, 10))
 
-        # Draw all entities in the sprite group.
-        self.entities.draw(self.screen)
+        # Draw player.
+        self.player.draw(self.screen)
+        # Draw all obstacles in the sprite group.
+        self.obstacles.draw(self.screen)
+        # Draw all enemies in the sprite group.
+        self.enemies.draw(self.screen)
 
-        # Show border around entities for debugging purpose only.
-        for entity in self.entities:
-            pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
+        # Show border around player and enemies for debugging purpose only.
+        pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.rect, 2)
+        for enemy in self.enemies:
+            pygame.draw.rect(self.screen, (255, 0, 0), enemy.rect, 2)
+
+        # Draw weapon.
+        self.screen.blit(self.player.sprite.weapon.image, self.player.sprite.weapon.position)
 
         # Draw projectiles.
         self.projectiles.draw(self.screen)
@@ -193,15 +210,13 @@ class Game:
         """
         Restarts the game.
         """
-        # Kill all obstacles and enemies.
-        for entity in self.entities.sprites()[1:]:
-            entity.kill()
-
-        # Kill all projectiles.
+        # Kill all obstacles, enemies and projectiles.
+        [obstacle.kill() for obstacle in self.obstacles]
+        [enemy.kill() for enemy in self.enemies]
         [projectile.kill() for projectile in self.projectiles]
 
         # Reset the player.
-        self.player.reset()
+        self.player.sprite.reset()
 
         # Reset travelled distance.
         self.distance = 0

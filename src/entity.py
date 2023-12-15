@@ -45,5 +45,11 @@ class Entity(pygame.sprite.Sprite):
         Args:
             group: The sprite group to check for collision with.
         """
-        if pygame.sprite.spritecollideany(self, group):
-            self.game.current_state = GameState.GAME_OVER
+        hit_sprite = pygame.sprite.spritecollideany(self, group)
+        if hit_sprite:
+            from src.enemy import Enemy
+            if isinstance(self, Enemy):
+                hit_sprite.kill()
+                self.kill()
+            else:
+                self.game.current_state = GameState.GAME_OVER

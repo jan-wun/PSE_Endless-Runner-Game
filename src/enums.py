@@ -34,3 +34,7 @@ class EnemyState(Enum):
     IDLE = "idle"
     WALKING_RIGHT = "walking_right"
     WALKING_LEFT = "walking_left"
+
+
+class WeaponType(Enum):
+    DEFAULT = "default"
