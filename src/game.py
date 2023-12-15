@@ -75,7 +75,7 @@ class Game:
         self.projectiles = pygame.sprite.Group()
 
         # Initialize game state.
-        self.current_state = GameState.PLAYING
+        self.current_state = GameState.MAIN_MENU
 
         # Initialize distance and highscore.
         self.distance = 0
@@ -128,7 +128,24 @@ class Game:
                             mouse_x, mouse_y)):
                     self.pause_game()
 
-            if self.current_state == GameState.PLAYING:
+            if self.current_state == GameState.MAIN_MENU:
+                self.menu.display(self.screen)
+                result = self.menu.handle_input()
+                if result == "play":
+                    self.current_state = GameState.PLAYING
+                elif result == "settings":
+                    # display settings menu
+                    print("settings menu")
+                elif result == "shop":
+                    # show shop menu
+                    print("Shop menu")
+                elif result == "stats":
+                    # show statistics menu
+                    print("stats menu")
+                elif result == "quit":
+                    self.end_game()
+
+            elif self.current_state == GameState.PLAYING:
                 # Update player.
                 self.player.update()
                 # Update all obstacles in the sprite group.
@@ -163,8 +180,8 @@ class Game:
                 if result == "resume":
                     self.current_state = GameState.PLAYING
                 elif result == "main_menu":
-                    print("Main Menu - tbdp")
-                    #self.show_main_menu()
+                    self.current_state = GameState.MAIN_MENU
+                    self.menu.display(self.screen)
                 elif result == "quit":
                     self.end_game()
 
