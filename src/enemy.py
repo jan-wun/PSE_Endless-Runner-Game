@@ -77,7 +77,7 @@ class Enemy(Entity):
                     self.game.projectiles.add(Projectile(projectile_position, [0, 5], [self.projectile_image], self.game))
                 elif self.type == EnemyType.ROBOT:
                     if self.game.player.sprite.position[0] < self.position[0]:
-                        projectile_position = [self.position[0], self.position[1] + 40]
+                        projectile_position = [self.position[0] - self.projectile_image.get_width(), self.position[1] + 40]
                         self.game.projectiles.add(Projectile(projectile_position, [-5 - self.game.scrolling_bg_speed, 0], [self.projectile_image], self.game))
                     else:
                         projectile_position = [self.position[0] + self.rect.width, self.position[1] + 40]
