@@ -130,7 +130,8 @@ class Game:
                     self.pause_button_clicked = True
                 elif self.current_state == GameState.PLAYING and ((event.type == pygame.KEYUP and
                                                                   event.key == pygame.K_p) or (
-                        event.type == pygame.MOUSEBUTTONUP and event.button == 1) and self.pause_button_clicked):
+                        event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.pause_button_rect.collidepoint(
+                            mouse_x, mouse_y) and self.pause_button_clicked)):
                     self.pause_button_clicked = False
                     self.pause_game()
                 if self.current_state == GameState.PAUSED:
