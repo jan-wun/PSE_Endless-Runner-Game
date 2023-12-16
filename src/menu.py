@@ -15,10 +15,15 @@ class Menu:
         self.quit_icon = pygame.transform.scale_by(
             pygame.image.load("assets/images/quit.png").convert_alpha(), 0.15)
         self.play_button = None
+        self.clicked_play_button = False
         self.settings_button = None
+        self.clicked_settings_button = False
         self.stats_button = None
+        self.clicked_stats_button = False
         self.shop_button = None
+        self.clicked_shop_button = False
         self.quit_button = None
+        self.clicked_quit_button = False
 
     def display(self, screen):
         """
@@ -51,22 +56,38 @@ class Menu:
         # Update display.
         pygame.display.flip()
 
-    def handle_input(self):
+    def handle_input(self, event):
         """
         Handles user input for the menu.
         """
         # Check for mouse clicks.
         mouse_x, mouse_y = pygame.mouse.get_pos()
-        if pygame.mouse.get_pressed()[0]:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if self.play_button.collidepoint(mouse_x, mouse_y):
-                return "play"
+                self.clicked_play_button = True
             elif self.settings_button.collidepoint(mouse_x, mouse_y):
-                return "settings"
+                self.clicked_settings_button = True
             elif self.stats_button.collidepoint(mouse_x, mouse_y):
-                return "stats"
+                self.clicked_stats_button = True
             elif self.quit_button.collidepoint(mouse_x, mouse_y):
-                return "quit"
+                self.clicked_quit_button = True
             elif self.shop_button.collidepoint(mouse_x, mouse_y):
+                self.clicked_shop_button = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self.play_button.collidepoint(mouse_x, mouse_y) and self.clicked_play_button:
+                self.clicked_play_button = False
+                return "play"
+            elif self.settings_button.collidepoint(mouse_x, mouse_y) and self.clicked_settings_button:
+                self.clicked_settings_button = False
+                return "settings"
+            elif self.stats_button.collidepoint(mouse_x, mouse_y) and self.clicked_stats_button:
+                self.clicked_stats_button = False
+                return "stats"
+            elif self.quit_button.collidepoint(mouse_x, mouse_y) and self.clicked_quit_button:
+                self.clicked_quit_button = False
+                return "quit"
+            elif self.shop_button.collidepoint(mouse_x, mouse_y) and self.clicked_shop_button:
+                self.clicked_shop_button = False
                 return "shop"
 
         # Update display.
@@ -120,15 +141,17 @@ class PauseMenu:
         self.font_large = pygame.font.SysFont("comicsansms", 65)
         self.font_small = pygame.font.SysFont("comicsansms", 50)
 
-    def handle_input(self, screen):
-        """
-        Handles user input for the pause menu.
+        self.resume_button = None
+        self.clicked_resume = False
+        self.main_menu_button = None
+        self.clicked_main_menu = False
+        self.quit_button = None
+        self.clicked_quit = False
 
-        Returns:
-            str: The action based on the button clicked ('resume', 'main_menu', 'quit').
-        """
+    def display(self, screen):
         # Draw background image on screen.
-        self.rect.topleft = ((screen.get_width() - self.image.get_width()) / 2, (screen.get_height() - self.image.get_height()) / 2)
+        self.rect.topleft = ((screen.get_width() - self.image.get_width()) / 2, (
+                screen.get_height() - self.image.get_height()) / 2)
         screen.blit(self.image, self.rect.topleft)
 
         # Paused text.
@@ -136,29 +159,46 @@ class PauseMenu:
         screen.blit(paused, (self.rect.centerx - paused.get_width() / 2, self.rect.top))
 
         # Button for resuming game.
-        resume_button_rect = draw_button(screen, (self.rect.centerx, 275), (0, 255, 0), "RESUME", (0, 255, 0),
+        self.resume_button = draw_button(screen, (self.rect.centerx, 275), (0, 255, 0), "RESUME", (0, 255, 0),
                                          self.font_small)
 
         # Button for returning to the main menu.
-        main_menu_button_rect = draw_button(screen, (self.rect.centerx, 375), (0, 0, 255), "MAIN MENU", (0, 0, 255),
+        self.main_menu_button = draw_button(screen, (self.rect.centerx, 375), (0, 0, 255), "MAIN MENU", (0, 0, 255),
                                             self.font_small)
 
         # Button for quitting the game.
-        quit_button_rect = draw_button(screen, (self.rect.centerx, 475), (255, 0, 0), "QUIT", (255, 0, 0),
+        self.quit_button = draw_button(screen, (self.rect.centerx, 475), (255, 0, 0), "QUIT", (255, 0, 0),
                                        self.font_small)
-
-        # Check for mouse clicks.
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if pygame.mouse.get_pressed()[0]:
-            if resume_button_rect.collidepoint(mouse_x, mouse_y):
-                return "resume"
-            elif main_menu_button_rect.collidepoint(mouse_x, mouse_y):
-                return "main_menu"
-            elif quit_button_rect.collidepoint(mouse_x, mouse_y):
-                return "quit"
 
         # Update display.
         pygame.display.flip()
+
+    def handle_input(self, event):
+        """
+        Handles user input for the pause menu.
+
+        Returns:
+            str: The action based on the button clicked ('resume', 'main_menu', 'quit').
+        """
+        # Check for mouse clicks.
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.resume_button.collidepoint(mouse_x, mouse_y):
+                self.clicked_resume = True
+            elif self.main_menu_button.collidepoint(mouse_x, mouse_y):
+                self.clicked_main_menu = True
+            elif self.quit_button.collidepoint(mouse_x, mouse_y):
+                self.clicked_quit = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self.resume_button.collidepoint(mouse_x, mouse_y) and self.clicked_resume:
+                self.clicked_resume = False
+                return "resume"
+            elif self.main_menu_button.collidepoint(mouse_x, mouse_y) and self.clicked_main_menu:
+                self.clicked_main_menu = False
+                return "main_menu"
+            elif self.quit_button.collidepoint(mouse_x, mouse_y) and self.clicked_quit:
+                self.clicked_quit = False
+                return "quit"
 
 
 def draw_button(screen, position, border_color, text=None, text_color=None, font=None, image=None):

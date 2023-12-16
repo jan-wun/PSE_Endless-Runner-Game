@@ -89,6 +89,7 @@ class Game:
             pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
         self.pause_button_rect = self.pause_button_image.get_rect(
             topright=(self.width - 10, 10))
+        self.pause_button_clicked = True
         self.pause_screen = PauseMenu()
         self.audio_manager = AudioManager()
         self.score_manager = ScoreManager()
@@ -126,26 +127,41 @@ class Game:
                                                                 event.key == pygame.K_p) or \
                         (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.pause_button_rect.collidepoint(
                             mouse_x, mouse_y)):
+                    self.pause_button_clicked = True
+                elif self.current_state == GameState.PLAYING and ((event.type == pygame.KEYUP and
+                                                                  event.key == pygame.K_p) or (
+                        event.type == pygame.MOUSEBUTTONUP and event.button == 1) and self.pause_button_clicked):
+                    self.pause_button_clicked = False
                     self.pause_game()
+                if self.current_state == GameState.PAUSED:
+                    self.pause_screen.display(self.screen)
+                    result = self.pause_screen.handle_input(event)
+                    if result == "resume":
+                        self.current_state = GameState.PLAYING
+                    elif result == "main_menu":
+                        self.current_state = GameState.MAIN_MENU
+                        self.menu.display(self.screen)
+                    elif result == "quit":
+                        self.end_game()
 
-            if self.current_state == GameState.MAIN_MENU:
-                self.menu.display(self.screen)
-                result = self.menu.handle_input()
-                if result == "play":
-                    self.current_state = GameState.PLAYING
-                elif result == "settings":
-                    # display settings menu
-                    print("settings menu")
-                elif result == "shop":
-                    # show shop menu
-                    print("Shop menu")
-                elif result == "stats":
-                    # show statistics menu
-                    print("stats menu")
-                elif result == "quit":
-                    self.end_game()
+                if self.current_state == GameState.MAIN_MENU:
+                    self.menu.display(self.screen)
+                    result = self.menu.handle_input(event)
+                    if result == "play":
+                        self.current_state = GameState.PLAYING
+                    elif result == "settings":
+                        # display settings menu
+                        print("settings menu")
+                    elif result == "shop":
+                        # show shop menu
+                        print("Shop menu")
+                    elif result == "stats":
+                        # show statistics menu
+                        print("stats menu")
+                    elif result == "quit":
+                        self.end_game()
 
-            elif self.current_state == GameState.PLAYING:
+            if self.current_state == GameState.PLAYING:
                 # Update player.
                 self.player.update()
                 # Update all obstacles in the sprite group.
@@ -174,16 +190,6 @@ class Game:
 
                 # Render game objects to the screen.
                 self.render()
-
-            elif self.current_state == GameState.PAUSED:
-                result = self.pause_screen.handle_input(self.screen)
-                if result == "resume":
-                    self.current_state = GameState.PLAYING
-                elif result == "main_menu":
-                    self.current_state = GameState.MAIN_MENU
-                    self.menu.display(self.screen)
-                elif result == "quit":
-                    self.end_game()
 
             elif self.current_state == GameState.GAME_OVER:
                 # Update highscore if necessary.
