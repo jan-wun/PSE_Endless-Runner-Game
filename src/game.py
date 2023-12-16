@@ -103,38 +103,18 @@ class Game:
 
         while True:
             for event in pygame.event.get():
-                mouse_x, mouse_y = pygame.mouse.get_pos()
+
+                # Handle quitting game (via ESC key or close button).
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.end_game()
 
-                if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
-                    self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
-                                                              [pygame.transform.flip(image, True, False) for image in
-                                                               self.car_images], 'car', 5, self),
-                                                     Obstacle([self.width + random.randint(200, 500), 585],
-                                                              self.meteor_images, 'meteor', 0,
-                                                              self)]))
-                if self.current_state == GameState.PLAYING and event.type == self.enemy_timer:
-                    enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
-                    if not any(enemy.type == enemy_choice for enemy in self.enemies):
-                        enemy_position = [400, 100] if enemy_choice == EnemyType.DRONE else [800, 512]
-                        self.enemies.add(Enemy(enemy_position, enemy_choice, self))
-
+                # Handle events in different GameStates.
+                # Handle game over state for restarting game (via SPACE key).
                 if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
                         event.key == pygame.K_SPACE:
                     self.restart_game()
-                if self.current_state == GameState.PLAYING and (event.type == pygame.KEYDOWN and
-                                                                event.key == pygame.K_p) or \
-                        (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.pause_button_rect.collidepoint(
-                            mouse_x, mouse_y)):
-                    self.pause_button_clicked = True
-                elif self.current_state == GameState.PLAYING and ((event.type == pygame.KEYUP and
-                                                                  event.key == pygame.K_p) or (
-                        event.type == pygame.MOUSEBUTTONUP and event.button == 1 and self.pause_button_rect.collidepoint(
-                            mouse_x, mouse_y) and self.pause_button_clicked)):
-                    self.pause_button_clicked = False
-                    self.pause_game()
-                if self.current_state == GameState.PAUSED:
+                # Handle paused state, display menu and check which button player clicks (resume, main_menu, quit).
+                elif self.current_state == GameState.PAUSED:
                     self.pause_screen.display(self.screen)
                     result = self.pause_screen.handle_input(event)
                     if result == "resume":
@@ -144,24 +124,59 @@ class Game:
                         self.menu.display(self.screen)
                     elif result == "quit":
                         self.end_game()
+                # Handle main menu state, display menu and check which
+                # button player clicks (play, settings, quit, shop, stats).
+                elif self.current_state == GameState.MAIN_MENU:
+                    if self.current_state == GameState.MAIN_MENU:
+                        self.menu.display(self.screen)
+                        result = self.menu.handle_input(event)
+                        if result == "play":
+                            self.current_state = GameState.PLAYING
+                        elif result == "settings":
+                            self.current_state = GameState.SETTINGS
+                        elif result == "shop":
+                            self.current_state = GameState.SHOP
+                        elif result == "stats":
+                            self.current_state = GameState.STATS
+                        elif result == "quit":
+                            self.end_game()
+                # Handle settings state, display menu and check whether player changes settings.
+                elif self.current_state == GameState.SETTINGS:
+                    ...     # tbd
+                # Handle shop state, display menu and check whether player buys something.
+                elif self.current_state == GameState.SHOP:
+                    ...     # tbd
+                # Handle stats state, display menu and check for player clicks (back button).
+                elif self.current_state == GameState.STATS:
+                    ...     # tbd
+                # Handle playing state.
+                elif self.current_state == GameState.PLAYING:
+                    # Check whether pause button or key (p) is clicked and pause game accordingly.
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and
+                        self.pause_button_rect.collidepoint(mouse_x, mouse_y)) or event.type == pygame.KEYDOWN and \
+                            event.key == pygame.K_p:
+                        self.pause_button_clicked = True
+                    elif (event.type == pygame.KEYUP and event.key == pygame.K_p) or (
+                            (event.type == pygame.MOUSEBUTTONUP and event.button == 1 and
+                             self.pause_button_rect.collidepoint(mouse_x, mouse_y)) and self.pause_button_clicked):
+                        self.pause_button_clicked = False
+                        self.pause_game()
+                    # Check obstacle timer and add car or meteor to obstacles.
+                    elif event.type == self.obstacle_timer:
+                        self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
+                                                                   [pygame.transform.flip(image, True, False) for image
+                                                                    in self.car_images], 'car', 5, self),
+                                                          Obstacle([self.width + random.randint(200, 500), 585],
+                                                                   self.meteor_images, 'meteor', 0, self)]))
+                    # Check enemy timer and add drone or robot to enemies.
+                    elif event.type == self.enemy_timer:
+                        enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+                        if not any(enemy.type == enemy_choice for enemy in self.enemies):
+                            enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
+                            self.enemies.add(Enemy(enemy_position, enemy_choice, self))
 
-                if self.current_state == GameState.MAIN_MENU:
-                    self.menu.display(self.screen)
-                    result = self.menu.handle_input(event)
-                    if result == "play":
-                        self.current_state = GameState.PLAYING
-                    elif result == "settings":
-                        # display settings menu
-                        print("settings menu")
-                    elif result == "shop":
-                        # show shop menu
-                        print("Shop menu")
-                    elif result == "stats":
-                        # show statistics menu
-                        print("stats menu")
-                    elif result == "quit":
-                        self.end_game()
-
+            # Update and render all game objects when game state is playing.
             if self.current_state == GameState.PLAYING:
                 # Update player.
                 self.player.update()
@@ -192,6 +207,7 @@ class Game:
                 # Render game objects to the screen.
                 self.render()
 
+            # Update reached distance and show game over screen when game state is game over.
             elif self.current_state == GameState.GAME_OVER:
                 # Update highscore if necessary.
                 if self.distance > self.highscore:

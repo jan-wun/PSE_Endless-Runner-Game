@@ -6,6 +6,9 @@ class GameState(Enum):
     Enumeration representing the various states of the game.
     """
     MAIN_MENU = "main_menu"
+    SETTINGS = "settings"
+    STATS = "statistics"
+    SHOP = "shop"
     PLAYING = "playing"
     PAUSED = "paused"
     GAME_OVER = "game_over"
