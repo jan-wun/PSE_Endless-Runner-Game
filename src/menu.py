@@ -305,7 +305,7 @@ class Slider:
         self.initial_val = (self.slider_right_pos - self.slider_left_pos) * initial_val
 
         self.container_rect = pygame.Rect(self.slider_left_pos, self.slider_top_pos, self.size[0], self.size[1])
-        self.button_rect = pygame.Rect(self.slider_left_pos + self.initial_val - 5, self.slider_top_pos, 20,
+        self.button_rect = pygame.Rect(self.slider_left_pos + self.initial_val - 5, self.slider_top_pos, 10,
                                        self.size[1])
 
         # label
