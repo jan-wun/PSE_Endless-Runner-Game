@@ -151,7 +151,9 @@ class Game:
                             self.end_game()
                 # Handle settings state, display menu and check whether player changes settings.
                 elif self.current_state == GameState.SETTINGS:
-                    self.settings_screen.display(self.screen)     # tbd
+                    self.settings_screen.display(self.screen)
+                    if self.settings_screen.back_button_clicked(event):
+                        self.current_state = GameState.MAIN_MENU
                 # Handle shop state, display menu and check whether player buys something.
                 elif self.current_state == GameState.SHOP:
                     ...     # tbd

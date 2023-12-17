@@ -220,6 +220,8 @@ class SettingsMenu:
                 Slider((self.image.get_rect().centerx + 450, self.image.get_rect().centery + 30),
                        (200, 40), 0.5, 0, 100, self.number_font)}
         self.game = game
+        self.back_button = None
+        self.clicked_back_button = False
 
     def display(self, screen):
         # Draw background image on screen.
@@ -236,7 +238,7 @@ class SettingsMenu:
         screen.blit(sound_volume, (self.image.get_rect().centerx + 315, self.image.get_rect().centery - 70))
 
         # Draw back button on screen.
-        back_button = draw_button(screen, (self.image.get_rect().centerx, self.image.get_height() - 80),
+        self.back_button = draw_button(screen, (self.image.get_rect().centerx, self.image.get_height() - 80),
                                   border_color=(0, 255, 255), text="BACK", text_color=(0, 150, 255), font=self.font_big)
 
         self.handle_input(screen)
@@ -264,9 +266,20 @@ class SettingsMenu:
             slider.render(screen)
             slider.display_value(screen)
             if name == "music_slider":
-                self.game.music.set_volume(int(slider.get_value() / 100))
+                self.game.music.set_volume(slider.get_value() / 100)
             elif name == "sound_slider":
                 [sound.set_volume(int(slider.get_value() / 100)) for sound in self.game.sounds.values()]
+
+    def back_button_clicked(self, event):
+        mouse_pos = pygame.mouse.get_pos()
+        # Check for mouse clicks on back button.
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.back_button.collidepoint(mouse_pos):
+                self.clicked_back_button = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self.back_button.collidepoint(mouse_pos) and self.clicked_back_button:
+                return True
+        return False
 
 
 class Slider:
@@ -289,10 +302,10 @@ class Slider:
 
         self.min = min
         self.max = max
-        self.initial_val = (self.slider_right_pos - self.slider_left_pos) * initial_val  # <- percentage
+        self.initial_val = (self.slider_right_pos - self.slider_left_pos) * initial_val
 
         self.container_rect = pygame.Rect(self.slider_left_pos, self.slider_top_pos, self.size[0], self.size[1])
-        self.button_rect = pygame.Rect(self.slider_left_pos + self.initial_val - 5, self.slider_top_pos, 10,
+        self.button_rect = pygame.Rect(self.slider_left_pos + self.initial_val - 5, self.slider_top_pos, 20,
                                        self.size[1])
 
         # label
