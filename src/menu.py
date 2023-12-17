@@ -201,6 +201,130 @@ class PauseMenu:
                 return "quit"
 
 
+class SettingsMenu:
+    """
+    Represents the settings menu.
+    """
+    def __init__(self, game):
+        self.image = pygame.transform.scale(pygame.image.load("assets/images/menu.png").convert_alpha(), (1344, 768))
+        self.settings_icon = pygame.transform.scale_by(
+            pygame.image.load("assets/images/settings.png").convert_alpha(), 0.5)
+        self.font_big = pygame.font.Font("assets/fonts/stacker.ttf", 60)
+        self.font_small = pygame.font.Font("assets/fonts/stacker.ttf", 30)
+        self.number_font = pygame.font.SysFont("comicsans", 30)
+        self.sliders = {
+            "music_slider":
+                Slider((self.image.get_rect().centerx / 2 - 125, self.image.get_rect().centery + 30), (200, 40),
+                       0.5, 0, 100, self.number_font),
+            "sound_slider":
+                Slider((self.image.get_rect().centerx + 450, self.image.get_rect().centery + 30),
+                       (200, 40), 0.5, 0, 100, self.number_font)}
+        self.game = game
+
+    def display(self, screen):
+        # Draw background image on screen.
+        screen.blit(self.image, (0, 0))
+
+        # Draw settings button on screen.
+        draw_button(screen, self.image.get_rect().center, border_color=(0, 0, 255),
+                    text_color=(0, 255, 255), image=self.settings_icon)
+
+        # Texts for music and sound volume.
+        music_volume = self.font_small.render("Music Volume", True, (0, 255, 255))
+        screen.blit(music_volume, (self.image.get_rect().centerx / 2 - 250, self.image.get_rect().centery - 70))
+        sound_volume = self.font_small.render("Sound Volume", True, (0, 255, 255))
+        screen.blit(sound_volume, (self.image.get_rect().centerx + 315, self.image.get_rect().centery - 70))
+
+        # Draw back button on screen.
+        back_button = draw_button(screen, (self.image.get_rect().centerx, self.image.get_height() - 80),
+                                  border_color=(0, 255, 255), text="BACK", text_color=(0, 150, 255), font=self.font_big)
+
+        self.handle_input(screen)
+
+        # Update display.
+        pygame.display.flip()
+
+    def handle_input(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
+        mouse = pygame.mouse.get_pressed()
+
+        for name, slider in self.sliders.items():
+            if slider.container_rect.collidepoint(mouse_pos):
+                if mouse[0]:
+                    slider.grabbed = True
+            if not mouse[0]:
+                slider.grabbed = False
+            if slider.button_rect.collidepoint(mouse_pos):
+                slider.hover()
+            if slider.grabbed:
+                slider.move_slider(mouse_pos)
+                slider.hover()
+            else:
+                slider.hovered = False
+            slider.render(screen)
+            slider.display_value(screen)
+            if name == "music_slider":
+                self.game.music.set_volume(int(slider.get_value() / 100))
+            elif name == "sound_slider":
+                [sound.set_volume(int(slider.get_value() / 100)) for sound in self.game.sounds.values()]
+
+
+class Slider:
+    def __init__(self, pos, size, initial_val, min, max, font):
+        self.pos = pos
+        self.size = size
+        self.font = font
+        self.hovered = False
+        self.grabbed = False
+        self.unselected_color = "blue"
+        self.selected_color = "white"
+        self.button_states = {
+            True: self.selected_color,
+            False: self.unselected_color
+        }
+
+        self.slider_left_pos = self.pos[0] - (size[0] // 2)
+        self.slider_right_pos = self.pos[0] + (size[0] // 2)
+        self.slider_top_pos = self.pos[1] - (size[1] // 2)
+
+        self.min = min
+        self.max = max
+        self.initial_val = (self.slider_right_pos - self.slider_left_pos) * initial_val  # <- percentage
+
+        self.container_rect = pygame.Rect(self.slider_left_pos, self.slider_top_pos, self.size[0], self.size[1])
+        self.button_rect = pygame.Rect(self.slider_left_pos + self.initial_val - 5, self.slider_top_pos, 10,
+                                       self.size[1])
+
+        # label
+        self.text = self.font.render(str(int(self.get_value())), True, "white")
+        self.label_rect = self.text.get_rect(center=(self.pos[0], self.slider_top_pos - 15))
+
+    def move_slider(self, mouse_pos):
+        pos = mouse_pos[0]
+        if pos < self.slider_left_pos:
+            pos = self.slider_left_pos
+        if pos > self.slider_right_pos:
+            pos = self.slider_right_pos
+        self.button_rect.centerx = pos
+
+    def hover(self):
+        self.hovered = True
+
+    def render(self, screen):
+        pygame.draw.rect(screen, "darkgray", self.container_rect)
+        pygame.draw.rect(screen, self.button_states[self.hovered], self.button_rect)
+
+    def get_value(self):
+        val_range = self.slider_right_pos - self.slider_left_pos - 1
+        button_val = self.button_rect.centerx - self.slider_left_pos
+
+        return (button_val / val_range) * (self.max - self.min) + self.min
+
+    def display_value(self, screen):
+        self.text = self.font.render(str(int(self.get_value())), True, "white")
+        screen.blit(self.text, self.label_rect)
+
+
 def draw_button(screen, position, border_color, text=None, text_color=None, font=None, image=None):
     """
     Draw a button on the screen.

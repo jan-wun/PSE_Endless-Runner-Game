@@ -2,8 +2,8 @@ import pygame
 import sys
 import random
 from src.enums import GameState, EnemyType
-from src.menu import Menu, GameOverMenu, PauseMenu
-from src.manager import AudioManager, ScoreManager
+from src.menu import Menu, GameOverMenu, PauseMenu, SettingsMenu
+from src.manager import ScoreManager
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
@@ -82,7 +82,7 @@ class Game:
         with open("data.txt", "r") as file:
             self.highscore = int((file.readline().split("=")[1]))
 
-        # Initialize menu, audio, and score manager.
+        # Initialize menus and score manager.
         self.menu = Menu()
         self.game_over_screen = GameOverMenu()
         self.pause_button_image = pygame.transform.scale_by(
@@ -91,7 +91,13 @@ class Game:
             topright=(self.width - 10, 10))
         self.pause_button_clicked = True
         self.pause_screen = PauseMenu()
-        self.audio_manager = AudioManager()
+        self.settings_screen = SettingsMenu(self)
+        self.music = pygame.mixer.Sound("assets/audio/music.mp3")
+        self.sounds = {
+            "click": pygame.mixer.Sound("assets/audio/click.mp3"),
+            "jump": pygame.mixer.Sound("assets/audio/jump.mp3"),
+            "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
+        }
         self.score_manager = ScoreManager()
 
     def start_game(self):
@@ -100,6 +106,9 @@ class Game:
         """
         # Create a clock object to control the frame rate.
         clock = pygame.time.Clock()
+
+        # Play background music.
+        self.music.play(-1)
 
         while True:
             for event in pygame.event.get():
@@ -142,7 +151,7 @@ class Game:
                             self.end_game()
                 # Handle settings state, display menu and check whether player changes settings.
                 elif self.current_state == GameState.SETTINGS:
-                    ...     # tbd
+                    self.settings_screen.display(self.screen)     # tbd
                 # Handle shop state, display menu and check whether player buys something.
                 elif self.current_state == GameState.SHOP:
                     ...     # tbd
