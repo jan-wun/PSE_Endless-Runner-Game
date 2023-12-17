@@ -91,7 +91,6 @@ class Game:
             topright=(self.width - 10, 10))
         self.pause_button_clicked = True
         self.pause_screen = PauseMenu()
-        self.settings_screen = SettingsMenu(self)
         self.music = pygame.mixer.Sound("assets/audio/music.mp3")
         self.music.set_volume(0.5)
         self.sounds = {
@@ -100,6 +99,7 @@ class Game:
             "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
         }
         [sound.set_volume(0.5) for sound in self.sounds.values()]
+        self.settings_screen = SettingsMenu(self)
         self.score_manager = ScoreManager()
 
     def start_game(self):

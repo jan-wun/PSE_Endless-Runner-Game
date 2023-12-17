@@ -212,14 +212,14 @@ class SettingsMenu:
         self.font_big = pygame.font.Font("assets/fonts/stacker.ttf", 60)
         self.font_small = pygame.font.Font("assets/fonts/stacker.ttf", 30)
         self.number_font = pygame.font.SysFont("comicsans", 30)
+        self.game = game
         self.sliders = {
             "music_slider":
                 Slider((self.image.get_rect().centerx / 2 - 125, self.image.get_rect().centery + 30), (200, 40),
-                       0.5, 0, 100, self.number_font),
+                       self.game.music.get_volume(), 0, 100, self.number_font),
             "sound_slider":
                 Slider((self.image.get_rect().centerx + 450, self.image.get_rect().centery + 30),
-                       (200, 40), 0.5, 0, 100, self.number_font)}
-        self.game = game
+                       (200, 40), self.game.sounds['shoot'].get_volume(), 0, 100, self.number_font)}
         self.back_button = None
         self.clicked_back_button = False
 
