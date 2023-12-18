@@ -60,7 +60,7 @@ class SaveLoadSystem:
             default_data (list): A list of default values corresponding to each file.
 
         Returns:
-            A tuple of loaded data or a single variable.
+            A list of loaded data or a single variable.
         """
         variables = []
         for index, file in enumerate(files_to_load):
@@ -70,17 +70,20 @@ class SaveLoadSystem:
                 variables.append(default_data[index])
 
         if len(variables) > 1:
-            return tuple(variables)
+            return variables
         else:
             return variables[0]
 
-    def save_game_data(self, data_to_save, file_names):
+    def save_game_data(self, data_to_save, file_names, modes):
         """
         Saves game data to files.
 
         Parameters:
             data_to_save (list): A list of data to be saved.
             file_names (list): A list of file names to save data into.
+            modes (list): A list of modes.
         """
         for index, file in enumerate(data_to_save):
+            if modes[index] == "ab":
+                file = self.load_game_data([file_names[index]], [[0, 0]]) + file
             self.save_data(file, file_names[index])
