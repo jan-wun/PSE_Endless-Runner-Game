@@ -268,7 +268,7 @@ class SettingsMenu:
             if name == "music_slider":
                 self.game.music.set_volume(slider.get_value() / 100)
             elif name == "sound_slider":
-                [sound.set_volume(int(slider.get_value() / 100)) for sound in self.game.sounds.values()]
+                [sound.set_volume(slider.get_value() / 100) for sound in self.game.sounds.values()]
 
     def back_button_clicked(self, event):
         mouse_pos = pygame.mouse.get_pos()

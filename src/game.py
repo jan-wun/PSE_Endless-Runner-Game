@@ -3,7 +3,8 @@ import sys
 import random
 from src.enums import GameState, EnemyType
 from src.menu import Menu, GameOverMenu, PauseMenu, SettingsMenu
-from src.manager import ScoreManager
+from src.score_manager import ScoreManager
+from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
@@ -32,6 +33,28 @@ class Game:
 
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png").convert_alpha()
+
+        # Initialize menus and score manager.
+        self.menu = Menu()
+        self.number_of_runs = 0
+        self.save_load_manager = SaveLoadSystem(".save", "data")
+        self.game_over_screen = GameOverMenu()
+        self.pause_button_image = pygame.transform.scale_by(
+            pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
+        self.pause_button_rect = self.pause_button_image.get_rect(
+            topright=(self.width - 10, 10))
+        self.pause_button_clicked = True
+        self.pause_screen = PauseMenu()
+        self.music = pygame.mixer.Sound("assets/audio/music.mp3")
+        self.music.set_volume(self.save_load_manager.load_data("volume")[0])
+        self.sounds = {
+            "click": pygame.mixer.Sound("assets/audio/click.mp3"),
+            "jump": pygame.mixer.Sound("assets/audio/jump.mp3"),
+            "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
+        }
+        [sound.set_volume(self.save_load_manager.load_data("volume")[1]) for sound in self.sounds.values()]
+        self.settings_screen = SettingsMenu(self)
+        self.score_manager = ScoreManager()
 
         # Initialize background position and scrolling speed.
         self.background_x = 0
@@ -79,28 +102,7 @@ class Game:
 
         # Initialize distance and highscore.
         self.distance = 0
-        with open("data.txt", "r") as file:
-            self.highscore = int((file.readline().split("=")[1]))
-
-        # Initialize menus and score manager.
-        self.menu = Menu()
-        self.game_over_screen = GameOverMenu()
-        self.pause_button_image = pygame.transform.scale_by(
-            pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
-        self.pause_button_rect = self.pause_button_image.get_rect(
-            topright=(self.width - 10, 10))
-        self.pause_button_clicked = True
-        self.pause_screen = PauseMenu()
-        self.music = pygame.mixer.Sound("assets/audio/music.mp3")
-        self.music.set_volume(0.5)
-        self.sounds = {
-            "click": pygame.mixer.Sound("assets/audio/click.mp3"),
-            "jump": pygame.mixer.Sound("assets/audio/jump.mp3"),
-            "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
-        }
-        [sound.set_volume(0.5) for sound in self.sounds.values()]
-        self.settings_screen = SettingsMenu(self)
-        self.score_manager = ScoreManager()
+        self.highscore = self.save_load_manager.load_data("highscore")
 
     def start_game(self):
         """
@@ -215,20 +217,25 @@ class Game:
                     self.background_x = 0
 
                 # Update distance.
-                self.distance += self.scrolling_bg_speed
+                self.distance += 1
 
                 # Render game objects to the screen.
                 self.render()
 
-            # Update reached distance and show game over screen when game state is game over.
+            # Show game over screen when game state is game over and save data of run.
             elif self.current_state == GameState.GAME_OVER:
+                # Update number of runs.
+                self.number_of_runs += 1
                 # Update highscore if necessary.
                 if self.distance > self.highscore:
                     self.highscore = self.distance
-                    with open("data.txt", "w") as file:
-                        file.write(f"highscore={self.highscore}")
+
                 # Show game over screen.
                 self.game_over_screen.show(self.screen, self.distance, self.highscore)
+
+                # Save data of run.
+                self.save_load_manager.save_game_data([
+                    (self.number_of_runs, self.distance), self.highscore], ["run_distance", "highscore"])
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -280,6 +287,10 @@ class Game:
         """
         Ends the game.
         """
+        # Save volume settings of music and sounds.
+        self.save_load_manager.save_data((self.music.get_volume(), self.sounds["shoot"].get_volume()), "volume")
+
+        # Close game and window.
         pygame.quit()
         sys.exit()
 
