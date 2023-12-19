@@ -31,6 +31,10 @@ class Menu:
                                                     0.2)
         self.shop_icon = pygame.transform.scale_by(pygame.image.load("assets/images/shopping_cart.png").convert_alpha(),
                                                    0.05)
+        self.heart_icon = pygame.transform.scale_by(pygame.image.load("assets/images/heart.png").convert_alpha(),
+                                                    0.03)
+        self.weapon_icon = pygame.transform.scale_by(
+            pygame.image.load("assets/images/player/weapon/weapon2_right.png").convert_alpha(), 5)
         self.buttons = []
         self.sliders = []
 
@@ -82,6 +86,17 @@ class Menu:
                 slider.hovered = False
             slider.render()
             slider.display_value()
+
+        # Check whether mouse position collides with buttons.
+        cursor_over_button = any(
+            button.rect.collidepoint(mouse_pos) and "text" not in button.name and "icon" not in button.name for button
+            in self.buttons)
+
+        # Set cursor based on collision with button.
+        if cursor_over_button:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
         # Handle mouse clicks for buttons.
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -142,7 +157,9 @@ class SettingsMenu(Menu):
                    self.right, (200, 40), self.game.sounds['shoot'].get_volume(), 0, 100, self.font_comicsans)
         ]
         self.buttons = [
-            Button("settings_button", self.game.screen, self.center, "blue", None, None, None, self.settings_icon_big),
+            Button("settings_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "settings",
+                   "dodgerblue", self.font_middle),
+            Button("settings_icon", self.game.screen, self.center, "blue", None, None, None, self.settings_icon_big),
             Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.font_middle)
         ]
 
@@ -270,20 +287,22 @@ class ShopMenu(Menu):
         super().__init__(game)
 
         self.buttons = [
-            Button("shop_button", self.game.screen, self.center, "blue", None, None, None, self.shop_icon),
+            Button("shop_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "shop",
+                   "dodgerblue", self.font_middle),
+            Button("shop_icon", self.game.screen, self.center, "blue", None, None, None, self.shop_icon),
+            Button("heart_icon", self.game.screen, (self.left[0] - 100, self.left[1] - 40), "red",
+                   None, None, None, self.heart_icon),
+            Button("buy_second_life_button", self.game.screen, (self.left[0] - 100, self.left[1] + 50), "dodgerblue",
+                   "buy", "cyan", self.font_small),
+            Button("weapon_icon", self.game.screen, (self.right[0] + 100, self.right[1] - 40), "grey",
+                   None, None, None, self.weapon_icon),
+            Button("buy_weapon_button", self.game.screen, (self.right[0] + 100, self.right[1] + 50), "dodgerblue",
+                   "buy", "cyan", self.font_small),
             Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.font_middle)
         ]
 
     def display(self):
         super().display()
-
-        # Texts for music and sound volume.
-        # music_volume = self.font_small.render("Music Volume", True, (0, 255, 255))
-        # music_volume_rect = music_volume.get_rect(center=(self.left[0] - 100, self.left[1] - 50))
-        # self.game.screen.blit(music_volume, music_volume_rect)
-        # sound_volume = self.font_small.render("Sound Volume", True, (0, 255, 255))
-        # sound_volume_rect = sound_volume.get_rect(center=(self.right[0] + 100, self.right[1] - 50))
-        # self.game.screen.blit(sound_volume, sound_volume_rect)
 
         # Update display.
         pygame.display.flip()

@@ -52,8 +52,6 @@ class Game:
             "jump": pygame.mixer.Sound("assets/audio/jump.mp3"),
             "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
         }
-        print(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[0])
-        print(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[1])
         [sound.set_volume(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[1]) for sound in
          self.sounds.values()]
         self.main_menu = MainMenu(self)
@@ -174,6 +172,10 @@ class Game:
                     if result:
                         if result == "back_button":
                             self.current_state = GameState.MAIN_MENU
+                        elif result == "buy_second_life_button":
+                            print("second life")
+                        elif result == "buy_weapon_button":
+                            print("weapon buy")
                 # Handle stats state, display menu and check for player clicks (back button).
                 elif self.current_state == GameState.STATS:
                     self.stats_menu.display()
