@@ -2,8 +2,9 @@ import pygame
 import sys
 import random
 from src.enums import GameState, EnemyType
-from src.menu import Menu, GameOverMenu
-from src.manager import AudioManager, ScoreManager
+from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
+from src.score_manager import ScoreManager
+from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
@@ -13,6 +14,7 @@ class Game:
     """
     The main class representing the endless runner game.
     """
+
     def __init__(self):
         """
         Initializes the Game object.
@@ -32,6 +34,31 @@ class Game:
 
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png").convert_alpha()
+
+        # Initialize menus and score manager.
+        self.save_load_manager = SaveLoadSystem(".save", "data")
+        self.number_of_runs = self.save_load_manager.load_game_data(["run_distance"], [[0, 0]])[-2]
+        self.game_over_screen = GameOverMenu()
+        self.pause_button_image = pygame.transform.scale_by(
+            pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
+        self.pause_button_rect = self.pause_button_image.get_rect(
+            topright=(self.width - 10, 10))
+        self.pause_button_clicked = True
+        self.pause_screen = PauseMenu(self)
+        self.music = pygame.mixer.Sound("assets/audio/music.mp3")
+        self.music.set_volume(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[0])
+        self.sounds = {
+            "click": pygame.mixer.Sound("assets/audio/click.mp3"),
+            "jump": pygame.mixer.Sound("assets/audio/jump.mp3"),
+            "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
+        }
+        [sound.set_volume(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[1]) for sound in
+         self.sounds.values()]
+        self.main_menu = MainMenu(self)
+        self.stats_menu = StatsMenu(self)
+        self.shop_menu = ShopMenu(self)
+        self.settings_screen = SettingsMenu(self)
+        self.score_manager = ScoreManager()
 
         # Initialize background position and scrolling speed.
         self.background_x = 0
@@ -75,18 +102,12 @@ class Game:
         self.projectiles = pygame.sprite.Group()
 
         # Initialize game state.
-        self.current_state = GameState.PLAYING
+        self.current_state = GameState.MAIN_MENU
 
         # Initialize distance and highscore.
         self.distance = 0
-        with open("data.txt", "r") as file:
-            self.highscore = int((file.readline().split("=")[1]))
-
-        # Initialize menu, audio, and score manager.
-        self.menu = Menu()
-        self.game_over_screen = GameOverMenu()
-        self.audio_manager = AudioManager()
-        self.score_manager = ScoreManager()
+        self.highscore = self.save_load_manager.load_game_data(["highscore"], [0])
+        self.updated_data = False
 
     def start_game(self):
         """
@@ -95,28 +116,101 @@ class Game:
         # Create a clock object to control the frame rate.
         clock = pygame.time.Clock()
 
+        # Play background music.
+        self.music.play(-1)
+
         while True:
             for event in pygame.event.get():
+
+                # Handle quitting game (via ESC key or close button).
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                     self.end_game()
 
-                if self.current_state == GameState.PLAYING and event.type == self.obstacle_timer:
-                    self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
-                                                              [pygame.transform.flip(image, True, False) for image in
-                                                               self.car_images], 'car', 5, self),
-                                                     Obstacle([self.width + random.randint(200, 500), 585],
-                                                              self.meteor_images, 'meteor', 0,
-                                                              self)]))
-                if self.current_state == GameState.PLAYING and event.type == self.enemy_timer:
-                    enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
-                    if not any(enemy.type == enemy_choice for enemy in self.enemies):
-                        enemy_position = [400, 100] if enemy_choice == EnemyType.DRONE else [800, 512]
-                        self.enemies.add(Enemy(enemy_position, enemy_choice, self))
-
+                # Handle events in different GameStates.
+                # Handle game over state for restarting game (via SPACE key).
                 if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
                         event.key == pygame.K_SPACE:
                     self.restart_game()
+                # Handle paused state, display menu and check which button player clicks (resume, main_menu, quit).
+                elif self.current_state == GameState.PAUSED:
+                    self.pause_screen.display()
+                    result = self.pause_screen.handle_input(event)
+                    if result == "resume_button":
+                        self.current_state = GameState.PLAYING
+                    elif result == "main_menu_button":
+                        self.current_state = GameState.MAIN_MENU
+                        self.main_menu.display()
+                    elif result == "quit_button":
+                        self.end_game()
+                # Handle main menu state, display menu and check which
+                # button player clicks (play, settings, quit, shop, stats).
+                elif self.current_state == GameState.MAIN_MENU:
+                    self.main_menu.display()
+                    result = self.main_menu.handle_input(event)
+                    if result:
+                        if result == "play_button":
+                            self.current_state = GameState.PLAYING
+                        elif result == "settings_button":
+                            self.current_state = GameState.SETTINGS
+                        elif result == "shop_button":
+                            self.current_state = GameState.SHOP
+                        elif result == "stats_button":
+                            self.current_state = GameState.STATS
+                        elif result == "quit_button":
+                            self.end_game()
+                # Handle settings state, display menu and check whether player changes settings.
+                elif self.current_state == GameState.SETTINGS:
+                    self.settings_screen.display()
+                    result = self.settings_screen.handle_input(event)
+                    if result:
+                        if result == "back_button":
+                            self.current_state = GameState.MAIN_MENU
+                # Handle shop state, display menu and check whether player buys something.
+                elif self.current_state == GameState.SHOP:
+                    self.shop_menu.display()
+                    result = self.shop_menu.handle_input(event)
+                    if result:
+                        if result == "back_button":
+                            self.current_state = GameState.MAIN_MENU
+                        elif result == "buy_second_life_button":
+                            print("second life")
+                        elif result == "buy_weapon_button":
+                            print("weapon buy")
+                # Handle stats state, display menu and check for player clicks (back button).
+                elif self.current_state == GameState.STATS:
+                    self.stats_menu.display()
+                    result = self.stats_menu.handle_input(event)
+                    if result:
+                        if result == "back_button":
+                            self.current_state = GameState.MAIN_MENU
+                # Handle playing state.
+                elif self.current_state == GameState.PLAYING:
+                    # Check whether pause button or key (p) is clicked and pause game accordingly.
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and
+                        self.pause_button_rect.collidepoint(mouse_x, mouse_y)) or event.type == pygame.KEYDOWN and \
+                            event.key == pygame.K_p:
+                        self.pause_button_clicked = True
+                    elif (event.type == pygame.KEYUP and event.key == pygame.K_p) or (
+                            (event.type == pygame.MOUSEBUTTONUP and event.button == 1 and
+                             self.pause_button_rect.collidepoint(mouse_x, mouse_y)) and self.pause_button_clicked):
+                        self.pause_button_clicked = False
+                        self.pause_game()
+                    # Check obstacle timer and add car or meteor to obstacles.
+                    elif event.type == self.obstacle_timer:
+                        self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
+                                                                   [pygame.transform.flip(image, True, False) for image
+                                                                    in self.car_images], 'car', 5, self),
+                                                          Obstacle([self.width + random.randint(200, 500), 585],
+                                                                   self.meteor_images, 'meteor', 0, self)]))
+                    # Check enemy timer and add drone or robot to enemies.
+                    elif event.type == self.enemy_timer:
+                        enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+                        if not any(enemy.type == enemy_choice for enemy in self.enemies):
+                            enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
+                            self.enemies.add(Enemy(enemy_position, enemy_choice, self))
 
+            # Update and render all game objects when game state is playing.
             if self.current_state == GameState.PLAYING:
                 # Update player.
                 self.player.update()
@@ -142,19 +236,29 @@ class Game:
                     self.background_x = 0
 
                 # Update distance.
-                self.distance += self.scrolling_bg_speed
+                self.distance += 1
 
                 # Render game objects to the screen.
                 self.render()
 
+            # Show game over screen when game state is game over and save data of run.
             elif self.current_state == GameState.GAME_OVER:
                 # Update highscore if necessary.
                 if self.distance > self.highscore:
                     self.highscore = self.distance
-                    with open("data.txt", "w") as file:
-                        file.write(f"highscore={self.highscore}")
+
                 # Show game over screen.
                 self.game_over_screen.show(self.screen, self.distance, self.highscore)
+
+                if not self.updated_data:
+                    self.updated_data = True
+                    # Update number of runs.
+                    self.number_of_runs += 1
+
+                    # Save data of run.
+                    self.save_load_manager.save_game_data([
+                        [self.number_of_runs, self.distance], self.highscore], ["run_distance", "highscore"],
+                        ["ab", "wb"])
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -190,6 +294,9 @@ class Game:
         # Draw projectiles.
         self.projectiles.draw(self.screen)
 
+        # Display pause button in the top right corner.
+        self.screen.blit(self.pause_button_image, self.pause_button_rect)
+
         # Update the full display Surface to the screen.
         pygame.display.flip()
 
@@ -197,12 +304,16 @@ class Game:
         """
         Pauses the game.
         """
-        pass
+        self.current_state = GameState.PAUSED
 
     def end_game(self):
         """
         Ends the game.
         """
+        # Save volume settings of music and sounds.
+        self.save_load_manager.save_data((self.music.get_volume(), self.sounds["shoot"].get_volume()), "volume")
+
+        # Close game and window.
         pygame.quit()
         sys.exit()
 
@@ -223,6 +334,7 @@ class Game:
 
         # Set current game state back to playing.
         self.current_state = GameState.PLAYING
+        self.updated_data = False
 
     def show_settings_menu(self):
         """

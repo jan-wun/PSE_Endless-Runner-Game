@@ -84,6 +84,7 @@ class Player(Entity):
             # Handle jump and slide input.
             if keys[pygame.K_UP]:
                 if not self.is_jumping and not self.is_sliding:
+                    self.game.sounds["jump"].play()
                     self.is_jumping = True
             elif keys[pygame.K_DOWN]:
                 if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding and \
@@ -211,6 +212,7 @@ class Player(Entity):
         """
         if self.weapon is not None:
             self.weapon.fire()
+            self.game.sounds['shoot'].play()
 
     def update(self):
         self.handle_input()
