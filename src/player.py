@@ -26,10 +26,8 @@ class Player(Entity):
         # Set initial health.
         self.health = 1
 
-        # Create a weapon for the player.
-        weapon_images = [pygame.transform.scale_by(pygame.image.load("assets/images/player/weapon/weapon1_right.png").convert_alpha(), 2.5),
-                         pygame.transform.scale_by(pygame.image.load("assets/images/player/weapon/weapon1_left.png").convert_alpha(), 2.5)]
-        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], weapon_images, WeaponType.DEFAULT, 1, game, self)
+        # Create default weapon for the player.
+        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, 1, game, self)
 
         # Set images for player movement animations.
         self.images_idle = images_idle

@@ -107,6 +107,7 @@ class Menu:
             for button in self.buttons:
                 if button.rect.collidepoint(mouse_pos) and button.clicked:
                     button.clicked = False
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                     return button.name
 
 
@@ -282,22 +283,42 @@ class ShopMenu(Menu):
     """
     Represents the shop menu.
     """
-
     def __init__(self, game):
         super().__init__(game)
+        self.shop_warning_insufficient_coins = """
+        display dialog "Unfortunately you do not have enough coins to purchase this item!" ¬
+        with title "Shop-Warning" ¬
+        with icon caution ¬
+        buttons "OK"
+        """
 
+        self.shop_warning_already_bought = """
+        display dialog "You already bought this item!" ¬
+        with title "Shop-Warning" ¬
+        with icon caution ¬
+        buttons "OK"
+        """
+
+        self.extra_life_costs = 100
+        self.weapon_costs = 50
         self.buttons = [
             Button("shop_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "shop",
                    "dodgerblue", self.font_middle),
             Button("shop_icon", self.game.screen, self.center, "blue", None, None, None, self.shop_icon),
-            Button("heart_icon", self.game.screen, (self.left[0] - 100, self.left[1] - 40), "red",
+            Button("coins_text", self.game.screen, (self.center[0], self.center[1] - 125), "dodgerblue",
+                   f"Coins: {self.game.coins}", "cyan", self.font_comicsans),
+            Button("heart_icon", self.game.screen, (self.left[0] - 100, self.left[1]), "red",
                    None, None, None, self.heart_icon),
-            Button("buy_second_life_button", self.game.screen, (self.left[0] - 100, self.left[1] + 50), "dodgerblue",
+            Button("buy_second_life_button", self.game.screen, (self.left[0] - 100, self.left[1] + 90), "dodgerblue",
                    "buy", "cyan", self.font_small),
-            Button("weapon_icon", self.game.screen, (self.right[0] + 100, self.right[1] - 40), "grey",
+            Button("second_life_costs_text", self.game.screen, (self.left[0] - 100, self.left[1] - 90), "dodgerblue",
+                   f"Costs: {self.extra_life_costs}", "cyan", self.font_comicsans),
+            Button("weapon_icon", self.game.screen, (self.right[0] + 100, self.right[1]), "grey",
                    None, None, None, self.weapon_icon),
-            Button("buy_weapon_button", self.game.screen, (self.right[0] + 100, self.right[1] + 50), "dodgerblue",
+            Button("buy_weapon_button", self.game.screen, (self.right[0] + 100, self.right[1] + 90), "dodgerblue",
                    "buy", "cyan", self.font_small),
+            Button("weapon_costs_text", self.game.screen, (self.right[0] + 100, self.right[1] - 90), "dodgerblue",
+                   f"Costs: {self.weapon_costs}", "cyan", self.font_comicsans),
             Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.font_middle)
         ]
 
@@ -317,9 +338,10 @@ class GameOverMenu:
     Represents the game over screen.
     """
 
-    def __init__(self):
+    def __init__(self, game):
         # Load game over image.
         self.image = pygame.transform.scale_by(pygame.image.load("assets/images/game_over.png").convert_alpha(), 0.5)
+        self.game = game
 
     def show(self, screen, distance, highscore):
         # Fill background with black.
@@ -333,11 +355,15 @@ class GameOverMenu:
 
         # Text for travelled score.
         score_surface = font.render(f"Reached Score: {distance}", True, (0, 0, 255))
-        screen.blit(score_surface, ((screen.get_width() - score_surface.get_width()) / 2, 80))
+        screen.blit(score_surface, ((screen.get_width() - score_surface.get_width()) / 2, 20))
 
         # Text for highscore.
         highscore_surface = font.render(f"Highscore: {highscore}", True, (0, 0, 255))
-        screen.blit(highscore_surface, ((screen.get_width() - highscore_surface.get_width()) / 2, 180))
+        screen.blit(highscore_surface, ((screen.get_width() - highscore_surface.get_width()) / 2, 120))
+
+        # Text for coins.
+        coins_surface = font.render(f"Coins received: {int(self.game.distance/100)}", True, (0, 0, 255))
+        screen.blit(coins_surface, ((screen.get_width() - coins_surface.get_width()) / 2, 220))
 
         # Text for restarting game.
         text_surface = font.render("Press space to run!", True, (0, 0, 255))

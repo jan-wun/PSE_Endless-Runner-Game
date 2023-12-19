@@ -1,13 +1,14 @@
 import pygame
 import sys
 import random
-from src.enums import GameState, EnemyType
+from src.enums import GameState, EnemyType, WeaponType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
-from src.score_manager import ScoreManager
 from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
+from src.weapon import Weapon
+import subprocess
 
 
 class Game:
@@ -35,10 +36,27 @@ class Game:
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png").convert_alpha()
 
-        # Initialize menus and score manager.
+        # Initialize save load manager.
         self.save_load_manager = SaveLoadSystem(".save", "data")
+
+        # Initialize user coins from file.
+        self.coins = self.save_load_manager.load_game_data(["coins"], [0])
+
+        # Create sprite group single for player.
+        player_idle = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_walk = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
+        player_jump = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_slide = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
+        self.player = pygame.sprite.GroupSingle()
+        self.player.add(Player(player_idle, player_walk, player_jump, player_slide, self))
+
+        # Initialize menus.
         self.number_of_runs = self.save_load_manager.load_game_data(["run_distance"], [[0, 0]])[-2]
-        self.game_over_screen = GameOverMenu()
+        self.game_over_screen = GameOverMenu(self)
         self.pause_button_image = pygame.transform.scale_by(
             pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
         self.pause_button_rect = self.pause_button_image.get_rect(
@@ -58,22 +76,12 @@ class Game:
         self.stats_menu = StatsMenu(self)
         self.shop_menu = ShopMenu(self)
         self.settings_screen = SettingsMenu(self)
-        self.score_manager = ScoreManager()
 
         # Initialize background position and scrolling speed.
         self.background_x = 0
         self.scrolling_bg_speed = 4
 
-        # Initialize entities (player, enemies, powerups, obstacles, weapon).
-        player_idle = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
-        player_walk = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
-        player_jump = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
-        player_slide = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
-
+        # Initialize entities (enemies, powerups, obstacles, weapon).
         # Create obstacle objects.
         self.car_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
@@ -93,10 +101,6 @@ class Game:
 
         # Create sprite group for enemies.
         self.enemies = pygame.sprite.Group()
-
-        # Create sprite group single for player.
-        self.player = pygame.sprite.GroupSingle()
-        self.player.add(Player(player_idle, player_walk, player_jump, player_slide, self))
 
         # Create sprite group for projectiles.
         self.projectiles = pygame.sprite.Group()
@@ -173,9 +177,9 @@ class Game:
                         if result == "back_button":
                             self.current_state = GameState.MAIN_MENU
                         elif result == "buy_second_life_button":
-                            print("second life")
+                            self.handle_shop_purchase(self.shop_menu.extra_life_costs, "extra_life")
                         elif result == "buy_weapon_button":
-                            print("weapon buy")
+                            self.handle_shop_purchase(self.shop_menu.weapon_costs, "weapon_upgrade")
                 # Handle stats state, display menu and check for player clicks (back button).
                 elif self.current_state == GameState.STATS:
                     self.stats_menu.display()
@@ -255,10 +259,14 @@ class Game:
                     # Update number of runs.
                     self.number_of_runs += 1
 
+                    # Update coins.
+                    self.coins += int(self.distance / 100)
+
                     # Save data of run.
                     self.save_load_manager.save_game_data([
-                        [self.number_of_runs, self.distance], self.highscore], ["run_distance", "highscore"],
-                        ["ab", "wb"])
+                        [self.number_of_runs, self.distance], self.highscore, self.coins],
+                        ["run_distance", "highscore", "coins"],
+                        ["ab", "wb", "wb"])
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -336,20 +344,37 @@ class Game:
         self.current_state = GameState.PLAYING
         self.updated_data = False
 
-    def show_settings_menu(self):
-        """
-        Displays the settings menu.
-        """
-        pass
+        # Reinstantiate shop for updated coins.
+        self.shop_menu = ShopMenu(self)
 
-    def show_power_ups_menu(self):
-        """
-        Displays the power-ups menu.
-        """
-        pass
+    def handle_shop_purchase(self, item_costs, item_name):
+        insufficient_coins_script = "osascript -e '{}'".format(self.shop_menu.shop_warning_insufficient_coins)
+        already_bought_script = "osascript -e '{}'".format(self.shop_menu.shop_warning_already_bought)
 
-    def show_statistics_menu(self):
-        """
-        Displays the statistics menu.
-        """
-        pass
+        if self.coins < item_costs:
+            subprocess.call(insufficient_coins_script, shell=True)
+        else:
+            if item_name == "extra_life":
+                self.handle_extra_life_purchase(item_costs, already_bought_script)
+            else:
+                self.handle_weapon_upgrade_purchase(item_costs, already_bought_script)
+
+        # Reinstantiate shop for updated coins.
+        self.shop_menu = ShopMenu(self)
+
+    def handle_extra_life_purchase(self, item_costs, already_bought_script):
+        if self.player.sprite.health != 2:
+            self.coins -= item_costs
+            self.player.sprite.health = 2
+        else:
+            subprocess.call(already_bought_script, shell=True)
+
+    def handle_weapon_upgrade_purchase(self, item_costs, already_bought_script):
+        if self.player.sprite.weapon.type != WeaponType.UPGRADE:
+            self.coins -= item_costs
+            self.player.sprite.weapon.kill()
+            self.player.sprite.weapon = Weapon(
+                [self.player.sprite.position[0] + self.player.sprite.rect.width, self.player.sprite.position[1] + 30],
+                WeaponType.UPGRADE, 1, self, self.player.sprite)
+        else:
+            subprocess.call(already_bought_script, shell=True)
