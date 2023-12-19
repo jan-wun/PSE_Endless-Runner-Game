@@ -1,9 +1,8 @@
 import pygame
 import sys
 import random
-from src.enums import GameState, EnemyType
+from src.enums import GameState, EnemyType, WeaponType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
-from src.score_manager import ScoreManager
 from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
@@ -35,10 +34,27 @@ class Game:
         # Load background image.
         self.background = pygame.image.load("assets/images/background.png").convert_alpha()
 
-        # Initialize menus and score manager.
+        # Initialize save load manager.
         self.save_load_manager = SaveLoadSystem(".save", "data")
+
+        # Initialize user coins from file.
+        self.coins = self.save_load_manager.load_game_data(["coins"], [0])
+
+        # Create sprite group single for player.
+        player_idle = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_walk = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
+        player_jump = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
+        player_slide = [pygame.transform.scale_by(
+            pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
+        self.player = pygame.sprite.GroupSingle()
+        self.player.add(Player(player_idle, player_walk, player_jump, player_slide, self))
+
+        # Initialize menus.
         self.number_of_runs = self.save_load_manager.load_game_data(["run_distance"], [[0, 0]])[-2]
-        self.game_over_screen = GameOverMenu()
+        self.game_over_screen = GameOverMenu(self)
         self.pause_button_image = pygame.transform.scale_by(
             pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
         self.pause_button_rect = self.pause_button_image.get_rect(
@@ -58,22 +74,12 @@ class Game:
         self.stats_menu = StatsMenu(self)
         self.shop_menu = ShopMenu(self)
         self.settings_screen = SettingsMenu(self)
-        self.score_manager = ScoreManager()
 
         # Initialize background position and scrolling speed.
         self.background_x = 0
         self.scrolling_bg_speed = 4
 
-        # Initialize entities (player, enemies, powerups, obstacles, weapon).
-        player_idle = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
-        player_walk = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
-        player_jump = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
-        player_slide = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
-
+        # Initialize entities (enemies, powerups, obstacles, weapon).
         # Create obstacle objects.
         self.car_images = [
             pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
@@ -93,10 +99,6 @@ class Game:
 
         # Create sprite group for enemies.
         self.enemies = pygame.sprite.Group()
-
-        # Create sprite group single for player.
-        self.player = pygame.sprite.GroupSingle()
-        self.player.add(Player(player_idle, player_walk, player_jump, player_slide, self))
 
         # Create sprite group for projectiles.
         self.projectiles = pygame.sprite.Group()
@@ -255,10 +257,14 @@ class Game:
                     # Update number of runs.
                     self.number_of_runs += 1
 
+                    # Update coins.
+                    self.coins += int(self.distance / 100)
+
                     # Save data of run.
                     self.save_load_manager.save_game_data([
-                        [self.number_of_runs, self.distance], self.highscore], ["run_distance", "highscore"],
-                        ["ab", "wb"])
+                        [self.number_of_runs, self.distance], self.highscore, self.coins],
+                        ["run_distance", "highscore", "coins"],
+                        ["ab", "wb", "wb"])
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
