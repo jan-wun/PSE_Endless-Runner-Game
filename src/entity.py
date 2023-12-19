@@ -48,8 +48,15 @@ class Entity(pygame.sprite.Sprite):
         hit_sprite = pygame.sprite.spritecollideany(self, group)
         if hit_sprite:
             from src.enemy import Enemy
+            from src.player import Player
             if isinstance(self, Enemy):
                 hit_sprite.kill()
                 self.kill()
-            else:
-                self.game.current_state = GameState.GAME_OVER
+            elif isinstance(self, Player):
+                self.health -= 1
+                if self.health == 0:
+                    self.game.current_state = GameState.GAME_OVER
+                else:
+                    [obstacle.kill() for obstacle in self.game.obstacles]
+                    [enemy.kill() for enemy in self.game.enemies]
+                    [projectile.kill() for projectile in self.game.projectiles]

@@ -41,3 +41,4 @@ class EnemyState(Enum):
 
 class WeaponType(Enum):
     DEFAULT = "default"
+    UPGRADE = "upgrade"

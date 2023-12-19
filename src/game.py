@@ -7,6 +7,8 @@ from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
+from src.weapon import Weapon
+import subprocess
 
 
 class Game:
@@ -175,9 +177,9 @@ class Game:
                         if result == "back_button":
                             self.current_state = GameState.MAIN_MENU
                         elif result == "buy_second_life_button":
-                            print("second life")
+                            self.handle_shop_purchase(self.shop_menu.extra_life_costs, "extra_life")
                         elif result == "buy_weapon_button":
-                            print("weapon buy")
+                            self.handle_shop_purchase(self.shop_menu.weapon_costs, "weapon_upgrade")
                 # Handle stats state, display menu and check for player clicks (back button).
                 elif self.current_state == GameState.STATS:
                     self.stats_menu.display()
@@ -342,20 +344,37 @@ class Game:
         self.current_state = GameState.PLAYING
         self.updated_data = False
 
-    def show_settings_menu(self):
-        """
-        Displays the settings menu.
-        """
-        pass
+        # Reinstantiate shop for updated coins.
+        self.shop_menu = ShopMenu(self)
 
-    def show_power_ups_menu(self):
-        """
-        Displays the power-ups menu.
-        """
-        pass
+    def handle_shop_purchase(self, item_costs, item_name):
+        insufficient_coins_script = "osascript -e '{}'".format(self.shop_menu.shop_warning_insufficient_coins)
+        already_bought_script = "osascript -e '{}'".format(self.shop_menu.shop_warning_already_bought)
 
-    def show_statistics_menu(self):
-        """
-        Displays the statistics menu.
-        """
-        pass
+        if self.coins < item_costs:
+            subprocess.call(insufficient_coins_script, shell=True)
+        else:
+            if item_name == "extra_life":
+                self.handle_extra_life_purchase(item_costs, already_bought_script)
+            else:
+                self.handle_weapon_upgrade_purchase(item_costs, already_bought_script)
+
+        # Reinstantiate shop for updated coins.
+        self.shop_menu = ShopMenu(self)
+
+    def handle_extra_life_purchase(self, item_costs, already_bought_script):
+        if self.player.sprite.health != 2:
+            self.coins -= item_costs
+            self.player.sprite.health = 2
+        else:
+            subprocess.call(already_bought_script, shell=True)
+
+    def handle_weapon_upgrade_purchase(self, item_costs, already_bought_script):
+        if self.player.sprite.weapon.type != WeaponType.UPGRADE:
+            self.coins -= item_costs
+            self.player.sprite.weapon.kill()
+            self.player.sprite.weapon = Weapon(
+                [self.player.sprite.position[0] + self.player.sprite.rect.width, self.player.sprite.position[1] + 30],
+                WeaponType.UPGRADE, 1, self, self.player.sprite)
+        else:
+            subprocess.call(already_bought_script, shell=True)
