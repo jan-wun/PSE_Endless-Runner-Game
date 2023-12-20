@@ -35,7 +35,12 @@ class PowerUp(Entity):
         """
         Applies the power-up effect to the player.
         """
-        pass
+        if self.type == PowerUpType.INVINCIBILITY:
+            self.game.player.sprite.invincible = True
+        elif self.type == PowerUpType.FREEZE:
+            self.game.freeze = True
+        elif self.type == PowerUpType.MULTIPLE_SHOTS:
+            self.game.player.sprite.weapon.shots = 5
 
     def move(self):
         self.position[0] -= self.game.scrolling_bg_speed

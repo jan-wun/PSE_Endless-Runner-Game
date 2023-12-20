@@ -23,7 +23,7 @@ class Enemy(Entity):
         if self.type == EnemyType.DRONE:
             self.image_list = [pygame.transform.scale_by(
                 pygame.image.load(f"assets/images/enemies/drone/idle/idle{i}.png").convert_alpha(), 3) for i in
-                               range(1, 5)]
+                range(1, 5)]
             self.projectile_image = pygame.transform.scale_by(
                 pygame.image.load(f"assets/images/bullets/capsule.png").convert_alpha(),
                 1.5)
@@ -31,7 +31,7 @@ class Enemy(Entity):
         else:
             self.image_list = [pygame.transform.scale_by(
                 pygame.image.load(f"assets/images/enemies/robot/idle/idle{i}.png").convert_alpha(), 3) for i in
-                               range(1, 5)]
+                range(1, 5)]
             self.projectile_image = pygame.transform.scale_by(
                 pygame.image.load(f"assets/images/bullets/projectile.png").convert_alpha(),
                 1.5)
@@ -44,7 +44,8 @@ class Enemy(Entity):
         Handles enemy movement logic.
         """
         if self.type == EnemyType.DRONE:
-            if not self.current_state == EnemyState.WALKING_LEFT and self.position[0] < self.game.width - self.rect.width:
+            if not self.current_state == EnemyState.WALKING_LEFT and self.position[
+                0] < self.game.width - self.rect.width:
                 self.move_right()
             else:
                 if self.position[0] > 0:
@@ -74,14 +75,19 @@ class Enemy(Entity):
             if random.random() < 0.2:
                 if self.type == EnemyType.DRONE:
                     projectile_position = [self.position[0] + self.rect.width / 2, self.position[1] + self.rect.height]
-                    self.game.projectiles.add(Projectile(projectile_position, [0, 5], [self.projectile_image], self.game))
+                    self.game.projectiles.add(
+                        Projectile(projectile_position, [0, 5], [self.projectile_image], self.game, "enemy"))
                 elif self.type == EnemyType.ROBOT:
                     if self.game.player.sprite.position[0] < self.position[0]:
-                        projectile_position = [self.position[0] - self.projectile_image.get_width(), self.position[1] + 40]
-                        self.game.projectiles.add(Projectile(projectile_position, [-5 - self.game.scrolling_bg_speed, 0], [self.projectile_image], self.game))
+                        projectile_position = [self.position[0] - self.projectile_image.get_width(),
+                                               self.position[1] + 40]
+                        self.game.projectiles.add(
+                            Projectile(projectile_position, [-5 - self.game.scrolling_bg_speed, 0],
+                                       [self.projectile_image], self.game, "enemy"))
                     else:
                         projectile_position = [self.position[0] + self.rect.width, self.position[1] + 40]
-                        self.game.projectiles.add(Projectile(projectile_position, [5, 0], [self.projectile_image], self.game))
+                        self.game.projectiles.add(
+                            Projectile(projectile_position, [5, 0], [self.projectile_image], self.game, "enemy"))
 
     def update(self):
         self.handle_movement()

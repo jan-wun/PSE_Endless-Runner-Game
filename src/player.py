@@ -26,8 +26,10 @@ class Player(Entity):
         # Set initial health.
         self.health = 1
 
+        self.invincible = False
+
         # Create default weapon for the player.
-        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, 1, game, self)
+        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, game, self)
 
         # Set images for player movement animations.
         self.images_idle = images_idle

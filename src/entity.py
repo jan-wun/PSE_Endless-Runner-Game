@@ -52,6 +52,7 @@ class Entity(pygame.sprite.Sprite):
             from src.powerup import PowerUp
             if isinstance(self, Enemy):
                 hit_sprite.kill()
+                self.game.player.sprite.weapon.shots += 1
                 self.kill()
             elif isinstance(self, Player):
                 if isinstance(hit_sprite, PowerUp):

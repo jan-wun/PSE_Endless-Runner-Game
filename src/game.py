@@ -81,6 +81,7 @@ class Game:
         # Initialize background position and scrolling speed.
         self.background_x = 0
         self.scrolling_bg_speed = 4
+        self.freeze = False
 
         # Initialize entities (enemies, powerups, obstacles, weapon).
         # Create obstacle objects.
@@ -226,7 +227,6 @@ class Game:
                         power_up_choice = random.choice([PowerUpType.INVINCIBILITY, PowerUpType.FREEZE,
                                                          PowerUpType.MULTIPLE_SHOTS])
                         self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
-                        print(self.power_ups)
 
             # Update and render all game objects when game state is playing.
             if self.current_state == GameState.PLAYING:
