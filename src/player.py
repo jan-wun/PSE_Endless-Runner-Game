@@ -211,7 +211,7 @@ class Player(Entity):
         """
         Make the player shoot (if a weapon is equipped).
         """
-        if self.weapon is not None:
+        if self.weapon is not None and self.weapon.shots >= 1:
             self.weapon.fire()
             self.game.sounds['shoot'].play()
 
