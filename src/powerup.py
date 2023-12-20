@@ -31,11 +31,19 @@ class PowerUp(Entity):
                 pygame.image.load("assets/images/power_ups/multiple_shots.png").convert_alpha(), (56, 56))]
         super().__init__(position, images, None, game)
 
-    def apply_powerup(self, player):
+    def apply_powerup(self):
         """
         Applies the power-up effect to the player.
-
-        Args:
-            player (Player): The player to apply the power-up to.
         """
         pass
+
+    def move(self):
+        self.position[0] -= self.game.scrolling_bg_speed
+        if self.position[1] <= self.game.height - 170:
+            self.position[1] += self.fall_speed
+        if self.position[0] <= 0 - self.image.get_width():
+            self.kill()
+
+    def update(self):
+        self.move()
+        super().update()

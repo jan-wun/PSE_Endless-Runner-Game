@@ -248,6 +248,8 @@ class Game:
                 self.player.sprite.check_collision(self.projectiles)
                 # Check for collision between enemies and projectiles.
                 [enemy.check_collision(self.projectiles) for enemy in self.enemies]
+                # Check for collision between player and powerup.
+                self.player.sprite.check_collision(self.power_ups)
 
                 # Functionality for scrolling background.
                 self.background_x -= self.scrolling_bg_speed
