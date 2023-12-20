@@ -20,11 +20,11 @@ class Weapon(Entity):
         """
         self.type = weapon_type
         self.player = player
-        self.shots = 1
         if self.type == WeaponType.DEFAULT:
             self.projectile_image = pygame.transform.scale_by(
                 pygame.image.load("assets/images/bullets/default_weapon.png").convert_alpha(), 3)
             self.shot_speed = 5
+            self.shots = 1
             images = [pygame.transform.scale_by(
                 pygame.image.load("assets/images/player/weapon/weapon1_right.png").convert_alpha(), 2.5),
                       pygame.transform.scale_by(
@@ -33,6 +33,7 @@ class Weapon(Entity):
             self.projectile_image = pygame.transform.scale_by(
                 pygame.image.load("assets/images/bullets/upgrade_weapon.png").convert_alpha(), 3)
             self.shot_speed = 8
+            self.shots = 2
             images = [pygame.transform.scale_by(
                 pygame.image.load("assets/images/player/weapon/weapon2_right.png").convert_alpha(), 2.5),
                       pygame.transform.scale_by(
