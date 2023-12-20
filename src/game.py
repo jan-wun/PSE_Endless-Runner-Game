@@ -1,13 +1,14 @@
 import pygame
 import sys
 import random
-from src.enums import GameState, EnemyType, WeaponType
+from src.enums import GameState, EnemyType, WeaponType, PowerUpType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
 from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
 from src.weapon import Weapon
+from src.powerup import PowerUp
 import subprocess
 
 
@@ -80,6 +81,8 @@ class Game:
         # Initialize background position and scrolling speed.
         self.background_x = 0
         self.scrolling_bg_speed = 4
+        self.freeze = False
+        self.freeze_time = self.fps * 7
 
         # Initialize entities (enemies, powerups, obstacles, weapon).
         # Create obstacle objects.
@@ -96,11 +99,18 @@ class Game:
         self.enemy_timer = pygame.USEREVENT + 2
         pygame.time.set_timer(self.enemy_timer, 5000)
 
+        # Add timer for powerup objects.
+        self.power_up_timer = pygame.USEREVENT + 3
+        pygame.time.set_timer(self.power_up_timer, 15000)
+
         # Create sprite group for obstacles.
         self.obstacles = pygame.sprite.Group()
 
         # Create sprite group for enemies.
         self.enemies = pygame.sprite.Group()
+
+        # Create sprite group for powerups.
+        self.power_ups = pygame.sprite.Group()
 
         # Create sprite group for projectiles.
         self.projectiles = pygame.sprite.Group()
@@ -201,29 +211,52 @@ class Game:
                         self.pause_button_clicked = False
                         self.pause_game()
                     # Check obstacle timer and add car or meteor to obstacles.
-                    elif event.type == self.obstacle_timer:
-                        self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
-                                                                   [pygame.transform.flip(image, True, False) for image
-                                                                    in self.car_images], 'car', 5, self),
-                                                          Obstacle([self.width + random.randint(200, 500), 585],
-                                                                   self.meteor_images, 'meteor', 0, self)]))
-                    # Check enemy timer and add drone or robot to enemies.
-                    elif event.type == self.enemy_timer:
-                        enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
-                        if not any(enemy.type == enemy_choice for enemy in self.enemies):
-                            enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
-                            self.enemies.add(Enemy(enemy_position, enemy_choice, self))
+                    if not self.freeze:
+                        if event.type == self.obstacle_timer:
+                            self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
+                                                                       [pygame.transform.flip(image, True, False) for image
+                                                                        in self.car_images], 'car', 5, self),
+                                                              Obstacle([self.width + random.randint(200, 500), 585],
+                                                                       self.meteor_images, 'meteor', 0, self)]))
+                        # Check enemy timer and add drone or robot to enemies.
+                        elif event.type == self.enemy_timer:
+                            enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+                            if not any(enemy.type == enemy_choice for enemy in self.enemies):
+                                enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
+                                self.enemies.add(Enemy(enemy_position, enemy_choice, self))
+                    # Check powerup timer and add a random powerup object to powerups.
+                    elif event.type == self.power_up_timer:
+                        power_up_choice = random.choice([PowerUpType.INVINCIBILITY, PowerUpType.FREEZE,
+                                                         PowerUpType.MULTIPLE_SHOTS])
+                        self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
 
             # Update and render all game objects when game state is playing.
             if self.current_state == GameState.PLAYING:
                 # Update player.
                 self.player.update()
-                # Update all obstacles in the sprite group.
-                self.obstacles.update()
-                # Update all enemies in the sprite group.
-                self.enemies.update()
-                # Update all projectiles.
-                self.projectiles.update()
+
+                # Check whether freeze powerup was collected.
+                if self.freeze:
+                    if self.freeze_time > 0:
+                        self.freeze_time -= 1
+                    else:
+                        self.freeze = False
+                else:
+                    # Update all obstacles in the sprite group.
+                    self.obstacles.update()
+                    # Update all enemies in the sprite group.
+                    self.enemies.update()
+                    # Update all projectiles.
+                    self.projectiles.update()
+                    # Update all powerups in the sprite group.
+                    self.power_ups.update()
+
+                    # Functionality for scrolling background.
+                    self.background_x -= self.scrolling_bg_speed
+                    # Check if the background has scrolled off the screen and reset position.
+                    if self.background_x <= -self.width:
+                        self.background_x = 0
+
                 # Check for collision between player and obstacles.
                 self.player.sprite.check_collision(self.obstacles)
                 # Check for collision between player and enemies.
@@ -232,12 +265,8 @@ class Game:
                 self.player.sprite.check_collision(self.projectiles)
                 # Check for collision between enemies and projectiles.
                 [enemy.check_collision(self.projectiles) for enemy in self.enemies]
-
-                # Functionality for scrolling background.
-                self.background_x -= self.scrolling_bg_speed
-                # Check if the background has scrolled off the screen and reset position.
-                if self.background_x <= -self.width:
-                    self.background_x = 0
+                # Check for collision between player and powerup.
+                self.player.sprite.check_collision(self.power_ups)
 
                 # Update distance.
                 self.distance += 1
@@ -290,6 +319,8 @@ class Game:
         self.obstacles.draw(self.screen)
         # Draw all enemies in the sprite group.
         self.enemies.draw(self.screen)
+        # Draw all powerups in the sprite group.
+        self.power_ups.draw(self.screen)
 
         # Show border around player and enemies for debugging purpose only.
         pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.rect, 2)
@@ -329,10 +360,11 @@ class Game:
         """
         Restarts the game.
         """
-        # Kill all obstacles, enemies and projectiles.
+        # Kill all obstacles, enemies, projectiles and powerups.
         [obstacle.kill() for obstacle in self.obstacles]
         [enemy.kill() for enemy in self.enemies]
         [projectile.kill() for projectile in self.projectiles]
+        [power_up.kill() for power_up in self.power_ups]
 
         # Reset the player.
         self.player.sprite.reset()
@@ -375,6 +407,6 @@ class Game:
             self.player.sprite.weapon.kill()
             self.player.sprite.weapon = Weapon(
                 [self.player.sprite.position[0] + self.player.sprite.rect.width, self.player.sprite.position[1] + 30],
-                WeaponType.UPGRADE, 1, self, self.player.sprite)
+                WeaponType.UPGRADE, self, self.player.sprite)
         else:
             subprocess.call(already_bought_script, shell=True)

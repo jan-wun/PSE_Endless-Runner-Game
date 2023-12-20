@@ -49,14 +49,21 @@ class Entity(pygame.sprite.Sprite):
         if hit_sprite:
             from src.enemy import Enemy
             from src.player import Player
+            from src.powerup import PowerUp
             if isinstance(self, Enemy):
                 hit_sprite.kill()
+                self.game.player.sprite.weapon.shots += 1
                 self.kill()
             elif isinstance(self, Player):
-                self.health -= 1
-                if self.health == 0:
-                    self.game.current_state = GameState.GAME_OVER
+                if isinstance(hit_sprite, PowerUp):
+                    hit_sprite.kill()
+                    hit_sprite.apply_powerup()
                 else:
-                    [obstacle.kill() for obstacle in self.game.obstacles]
-                    [enemy.kill() for enemy in self.game.enemies]
-                    [projectile.kill() for projectile in self.game.projectiles]
+                    if not self.invincible:
+                        self.health -= 1
+                        if self.health == 0:
+                            self.game.current_state = GameState.GAME_OVER
+                        else:
+                            [obstacle.kill() for obstacle in self.game.obstacles]
+                            [enemy.kill() for enemy in self.game.enemies]
+                            [projectile.kill() for projectile in self.game.projectiles]

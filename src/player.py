@@ -26,8 +26,11 @@ class Player(Entity):
         # Set initial health.
         self.health = 1
 
+        self.invincible = False
+        self.invincible_time = self.game.fps * 5
+
         # Create default weapon for the player.
-        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, 1, game, self)
+        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, game, self)
 
         # Set images for player movement animations.
         self.images_idle = images_idle
@@ -208,7 +211,7 @@ class Player(Entity):
         """
         Make the player shoot (if a weapon is equipped).
         """
-        if self.weapon is not None:
+        if self.weapon is not None and self.weapon.shots >= 1:
             self.weapon.fire()
             self.game.sounds['shoot'].play()
 
@@ -218,6 +221,11 @@ class Player(Entity):
         self.slide()
         if self.slide_cooldown > 0:
             self.slide_cooldown -= 1
+        if self.invincible:
+            if self.invincible_time > 0:
+                self.invincible_time -= 1
+            else:
+                self.invincible = False
         self.update_animation()
         # Set the previous walking state at the end of the update method.
         if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:
