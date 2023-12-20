@@ -42,3 +42,10 @@ class EnemyState(Enum):
 class WeaponType(Enum):
     DEFAULT = "default"
     UPGRADE = "upgrade"
+
+
+class PowerUpType(Enum):
+    INVINCIBILITY = "invincibility"
+    FREEZE = "freeze"
+    MULTIPLE_SHOTS = "multiple_shots"
+

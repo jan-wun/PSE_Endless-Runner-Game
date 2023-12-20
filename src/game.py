@@ -1,13 +1,14 @@
 import pygame
 import sys
 import random
-from src.enums import GameState, EnemyType, WeaponType
+from src.enums import GameState, EnemyType, WeaponType, PowerUpType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
 from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
 from src.enemy import Enemy
 from src.weapon import Weapon
+from src.powerup import PowerUp
 import subprocess
 
 
@@ -96,11 +97,18 @@ class Game:
         self.enemy_timer = pygame.USEREVENT + 2
         pygame.time.set_timer(self.enemy_timer, 5000)
 
+        # Add timer for powerup objects.
+        self.power_up_timer = pygame.USEREVENT + 3
+        pygame.time.set_timer(self.power_up_timer, 15000)
+
         # Create sprite group for obstacles.
         self.obstacles = pygame.sprite.Group()
 
         # Create sprite group for enemies.
         self.enemies = pygame.sprite.Group()
+
+        # Create sprite group for powerups.
+        self.power_ups = pygame.sprite.Group()
 
         # Create sprite group for projectiles.
         self.projectiles = pygame.sprite.Group()
@@ -213,6 +221,12 @@ class Game:
                         if not any(enemy.type == enemy_choice for enemy in self.enemies):
                             enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
                             self.enemies.add(Enemy(enemy_position, enemy_choice, self))
+                    # Check powerup timer and add a random powerup object to powerups.
+                    elif event.type == self.power_up_timer:
+                        power_up_choice = random.choice([PowerUpType.INVINCIBILITY, PowerUpType.FREEZE,
+                                                         PowerUpType.MULTIPLE_SHOTS])
+                        self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
+                        print(self.power_ups)
 
             # Update and render all game objects when game state is playing.
             if self.current_state == GameState.PLAYING:
@@ -224,6 +238,8 @@ class Game:
                 self.enemies.update()
                 # Update all projectiles.
                 self.projectiles.update()
+                # Update all powerups in the sprite group.
+                self.power_ups.update()
                 # Check for collision between player and obstacles.
                 self.player.sprite.check_collision(self.obstacles)
                 # Check for collision between player and enemies.
@@ -290,6 +306,8 @@ class Game:
         self.obstacles.draw(self.screen)
         # Draw all enemies in the sprite group.
         self.enemies.draw(self.screen)
+        # Draw all powerups in the sprite group.
+        self.power_ups.draw(self.screen)
 
         # Show border around player and enemies for debugging purpose only.
         pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.rect, 2)
@@ -329,10 +347,11 @@ class Game:
         """
         Restarts the game.
         """
-        # Kill all obstacles, enemies and projectiles.
+        # Kill all obstacles, enemies, projectiles and powerups.
         [obstacle.kill() for obstacle in self.obstacles]
         [enemy.kill() for enemy in self.enemies]
         [projectile.kill() for projectile in self.projectiles]
+        [power_up.kill() for power_up in self.power_ups]
 
         # Reset the player.
         self.player.sprite.reset()

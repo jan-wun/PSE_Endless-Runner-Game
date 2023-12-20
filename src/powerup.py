@@ -1,23 +1,35 @@
 import pygame
 from src.entity import Entity
-from src.player import Player
+from src.enums import PowerUpType
 
 
 class PowerUp(Entity):
     """
     Class representing power-up entities in the game.
     """
-    def __init__(self, position, images, powerup_type):
+
+    def __init__(self, position, powerup_type, game):
         """
         Initializes a power-up with a given position, animation images, and type.
 
         Args:
-            position (tuple): The initial position (x, y) of the power-up.
-            images (list): List of images for power-up animation.
+            position (list): The initial position [x, y] of the power-up.
             powerup_type (PowerUpType): The type of power-up.
         """
-        super().__init__(position, images, None)
         self.type = powerup_type
+        self.fall_speed = 3
+        if self.type == PowerUpType.INVINCIBILITY:
+            images = [
+                pygame.transform.scale(pygame.image.load("assets/images/power_ups/invincible.png").convert_alpha(),
+                                       (56, 56))]
+        elif self.type == PowerUpType.FREEZE:
+            images = [
+                pygame.transform.scale(pygame.image.load("assets/images/power_ups/freeze.png").convert_alpha(),
+                                       (56, 56))]
+        elif self.type == PowerUpType.MULTIPLE_SHOTS:
+            images = [pygame.transform.scale(
+                pygame.image.load("assets/images/power_ups/multiple_shots.png").convert_alpha(), (56, 56))]
+        super().__init__(position, images, None, game)
 
     def apply_powerup(self, player):
         """
