@@ -1,4 +1,3 @@
-import pygame
 from src.assets import Assets
 from src.entity import Entity
 from src.enums import PlayerState, WeaponType
@@ -17,10 +16,12 @@ class Weapon(Entity):
         Args:
             position (tuple): The initial position (x, y) of the weapon.
             weapon_type (WeaponType): The type of weapon.
+            player (Player): The player of the game.
         """
         self.assets = Assets()
         self.type = weapon_type
         self.player = player
+        # Set image, shot speed and number of shots based on weapon type.
         if self.type == WeaponType.DEFAULT:
             self.projectile_image = self.assets.default_weapon_bullet
             self.shot_speed = 5
@@ -38,13 +39,16 @@ class Weapon(Entity):
         """
         Fires the weapon.
         """
+        # Decrease shots.
         self.shots -= 1
+        # Shot needs to move to the right, when weapon is directed to the right side and vice versa.
         if self.image == self.image_list[0]:
             projectile_x_position = self.position[0] + self.rect.width
             projectile_velocity = [self.shot_speed, 0]
         else:
             projectile_x_position = self.position[0]
             projectile_velocity = [-(self.shot_speed + self.game.scrolling_bg_speed), 0]
+        # Add projectile to projectiles sprite group.
         self.game.projectiles.add(
             Projectile([projectile_x_position, self.position[1] + 5], projectile_velocity,
                        [self.projectile_image], self.game, "player"))

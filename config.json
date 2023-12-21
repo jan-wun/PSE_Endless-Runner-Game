@@ -1,0 +1,23 @@
+{
+  "audio_path": "assets/audio/",
+  "font_path": "assets/fonts",
+  "image_path": "assets/images/",
+  "fps": 60,
+  "freeze_time_s": 7,
+  "scrolling_bg_speed": 4,
+  "multiple_shots": 5,
+  "obstacle_timer": 3,
+  "enemy_timer": 25,
+  "attack_probability": 0.2,
+  "attack_timer": 1,
+  "initial_player_position": [100, 520],
+  "initial_player_health": 1,
+  "invincible_time": 5,
+  "player_speed": 5,
+  "player_jump_height": 20,
+  "player_slide_height": 600,
+  "player_slide_speed_reduction": 0.1,
+  "player_slide_end_position": 80,
+  "player_slide_cooldown_max": 150,
+  "player_animation_speed": 6
+}

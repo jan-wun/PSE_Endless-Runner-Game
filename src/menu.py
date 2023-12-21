@@ -10,15 +10,25 @@ class Menu:
     """
 
     def __init__(self, game):
+        """
+        Initializes menu with background image and areas for displaying texts / buttons / icons.
+
+        Args:
+            game (object): Game object.
+        """
         self.assets = Assets()
         self.image = self.assets.menu_background
         self.image_rect = self.assets.background_image.get_rect()
         self.game = game
+
+        # 5 Areas that can be filled with content.
         self.center = self.image_rect.center
         self.top = (self.center[0], 65)
         self.bottom = (self.center[0], self.image_rect.height - 65)
         self.left = (self.center[0] // 2, self.center[1])
         self.right = (self.center[0] + self.center[0] // 2, self.center[1])
+
+        # Placeholder for buttons and sliders.
         self.buttons = []
         self.sliders = []
 
@@ -46,6 +56,9 @@ class Menu:
     def handle_input(self, event):
         """
         Handles user input for the menu.
+
+        Args:
+            event (pygame.event.Event): An occurred pygame event.
 
         Returns:
             Name of the clicked button if a button was clicked.
@@ -101,6 +114,12 @@ class MainMenu(Menu):
     """
 
     def __init__(self, game):
+        """
+        Initializes main menu.
+
+        Args:
+            game (object): Game object.
+        """
         super().__init__(game)
         self.buttons = [
             Button("play_button", self.game.screen, self.center, "magenta", "play", "cyan", self.assets.font_big),
@@ -123,6 +142,9 @@ class MainMenu(Menu):
     def handle_input(self, event):
         """
         Handles user input for the menu.
+
+        Returns:
+            str: The action based on the button clicked ('play', 'stats', 'settings', 'shop', 'quit').
         """
         clicked_button = super().handle_input(event)
         return clicked_button
@@ -134,6 +156,12 @@ class SettingsMenu(Menu):
     """
 
     def __init__(self, game):
+        """
+        Initializes settings menu.
+
+        Args:
+            game (object): Game object.
+        """
         super().__init__(game)
 
         self.sliders = [
@@ -152,6 +180,9 @@ class SettingsMenu(Menu):
         ]
 
     def display(self):
+        """
+        Displays the menu on the screen.
+        """
         super().display()
 
         # Texts for music and sound volume.
@@ -166,6 +197,13 @@ class SettingsMenu(Menu):
         pygame.display.flip()
 
     def handle_input(self, event):
+        """
+        Handles user input for the menu.
+
+        Returns:
+            str: The action based on the button clicked ('back').
+        """
+        # Get values of sliders and update sound / music volume.
         for slider in self.sliders:
             if slider.name == "music_slider":
                 self.assets.music.set_volume(round(slider.get_value() / 100, 2))
@@ -178,10 +216,16 @@ class SettingsMenu(Menu):
 
 class StatsMenu(Menu):
     """
-    Represents the statistcs menu.
+    Represents the statistics menu.
     """
 
     def __init__(self, game):
+        """
+        Initializes statistics menu.
+
+        Args:
+            game (object): Game object.
+        """
         super().__init__(game)
 
         self.buttons = [
@@ -192,6 +236,9 @@ class StatsMenu(Menu):
         ]
 
     def display(self):
+        """
+        Displays the menu on the screen.
+        """
         super().display()
 
         # Get highscore and travelled distance of last 10 runs .
@@ -220,6 +267,15 @@ class StatsMenu(Menu):
         pygame.display.flip()
 
     def get_highscore_and_run_distance(self):
+        """
+        Gets highscore and distance of last 10 runs.
+
+        Returns:
+            highscore (int): The overall highscore.
+            run_distance_df (pandas.DataFrame): A pandas DataFrame containing the run number and
+                                                distance of the last 10 runs.
+            distance_list (list): A list of the last 10 distances.
+        """
         # Get highscore and distance of last 10 runs.
         highscore, run_distance_list = self.game.save_load_manager.load_game_data(["highscore", "run_distance"],
                                                                                   [0, [0, 0]])
@@ -239,6 +295,12 @@ class StatsMenu(Menu):
         return highscore, run_distance_df, distance_list
 
     def display_table(self, table_df):
+        """
+        Displays the statistics dataframe as table.
+
+        Args:
+            table_df (pandas.DataFrame): A pandas DataFrame containing the data for the table.
+        """
         # Cell and table settings
         cell_padding = 5
         table_x, table_y = self.left[0] - 250, self.left[1] - 250
@@ -262,6 +324,12 @@ class StatsMenu(Menu):
                 self.game.screen.blit(cell_text, (cell_rect.x + cell_padding, cell_rect.y + cell_padding))
 
     def handle_input(self, event):
+        """
+        Handles user input for the menu.
+
+        Returns:
+            str: The action based on the button clicked ('back').
+        """
         clicked_button = super().handle_input(event)
         return clicked_button
 
@@ -272,6 +340,12 @@ class ShopMenu(Menu):
     """
 
     def __init__(self, game):
+        """
+        Initializes shop menu.
+
+        Args:
+            game (object): Game object.
+        """
         super().__init__(game)
         self.shop_warning_insufficient_coins = """
         display dialog "Unfortunately you do not have enough coins to purchase this item!" ¬
@@ -311,26 +385,44 @@ class ShopMenu(Menu):
         ]
 
     def display(self):
+        """
+        Displays the menu on the screen.
+        """
         super().display()
 
         # Update display.
         pygame.display.flip()
 
     def handle_input(self, event):
+        """
+        Handles user input for the menu.
+
+        Returns:
+            str: The action based on the button clicked ('back', 'buy_second_life', 'buy_weapon').
+        """
         clicked_button = super().handle_input(event)
         return clicked_button
 
 
 class GameOverMenu:
     """
-    Represents the game over screen.
+    Represents the game over menu.
     """
 
     def __init__(self, game):
+        """
+        Initializes game over menu.
+
+        Args:
+            game (object): Game object.
+        """
         self.assets = Assets()
         self.game = game
 
-    def show(self, screen, distance, highscore):
+    def display(self, screen, distance, highscore):
+        """
+        Displays the menu on the screen.
+        """
         # Fill background with black.
         screen.fill((0, 0, 0))
 
@@ -348,7 +440,7 @@ class GameOverMenu:
 
         # Text for coins.
         coins_surface = self.assets.font_comicsans_big.render(f"Coins received: {int(self.game.distance / 100)}", True,
-                                                    (0, 0, 255))
+                                                              (0, 0, 255))
         screen.blit(coins_surface, ((screen.get_width() - coins_surface.get_width()) / 2, 220))
 
         # Text for restarting game.
@@ -361,10 +453,16 @@ class GameOverMenu:
 
 class PauseMenu(Menu):
     """
-    Represents the pause screen.
+    Represents the pause menu.
     """
 
     def __init__(self, game):
+        """
+        Initializes pause menu.
+
+        Args:
+            game (object): Game object.
+        """
         super().__init__(game)
 
         # Load different background image for pause screen.
@@ -380,6 +478,9 @@ class PauseMenu(Menu):
         ]
 
     def display(self):
+        """
+        Displays the menu on the screen.
+        """
         pos = (self.game.screen.get_width() - self.image_rect.width // 2,
                self.game.screen.get_height() - self.image_rect.width // 2)
         super().display(pos)
@@ -393,7 +494,7 @@ class PauseMenu(Menu):
 
     def handle_input(self, event):
         """
-        Handles user input for the pause menu.
+        Handles user input for the menu.
 
         Returns:
             str: The action based on the button clicked ('resume', 'main_menu', 'quit').
@@ -403,7 +504,14 @@ class PauseMenu(Menu):
 
 
 class Slider:
+    """
+    Class representing slider UI elements.
+    """
+
     def __init__(self, name, screen, pos, size, initial_val, min, max, font):
+        """
+        Initializes a slider.
+        """
         self.name = name
         self.screen = screen
         self.size = size
@@ -438,6 +546,12 @@ class Slider:
         self.label_rect = self.text.get_rect(center=(self.pos[0], self.slider_top_pos - 15))
 
     def move_slider(self, mouse_pos):
+        """
+        Moves slider to the position of the mouse.
+
+        Args:
+            mouse_pos (tuple): X and y coordinates of the mouse position.
+        """
         pos = mouse_pos[0]
         if pos < self.slider_left_pos:
             pos = self.slider_left_pos
@@ -446,29 +560,48 @@ class Slider:
         self.button_rect.centerx = pos
 
     def hover(self):
+        """
+        Sets hover state.
+        """
         self.hovered = True
 
     def render(self):
+        """
+        Renders the slider to the screen.
+        """
         pygame.draw.rect(self.screen, "darkgray", self.container_rect)
         pygame.draw.rect(self.screen, self.button_states[self.hovered], self.button_rect)
 
     def get_value(self):
+        """
+        Gets the value of the current button position in the slider.
+
+        Returns:
+            percentage (int): The percentage of the button position relative to the slider size.
+        """
         val_range = self.slider_right_pos - self.slider_left_pos - 1
         button_val = self.button_rect.centerx - self.slider_left_pos
+        percentage = (button_val / val_range) * (self.max - self.min) + self.min
 
-        return (button_val / val_range) * (self.max - self.min) + self.min
+        return percentage
 
     def display_value(self):
+        """
+        Display the value in a label above the slider.
+        """
         self.text = self.font.render(str(int(self.get_value())), True, "white")
         self.screen.blit(self.text, self.label_rect)
 
 
 class Button:
     """
-    Represents a button.
+    Class representing button UI elements.
     """
 
     def __init__(self, name, screen, position, border_color, text, text_color, font, image=None):
+        """
+        Initializes a button.
+        """
         self.name = name
         self.screen = screen
         self.position = position
@@ -496,6 +629,7 @@ class Button:
         elif self.position[0] == self.screen.get_width() - self.screen.get_width() // 4:
             self.position = (self.position[0] + button.get_rect().width // 2, self.position[1])
 
+        # Get button rect and draw button on screen.
         self.rect = button.get_rect(center=self.position)
         pygame.draw.rect(self.screen, self.border_color, self.rect.inflate(30, 10), 5, border_radius=25)
         self.screen.blit(button, (self.rect.x, self.rect.y))

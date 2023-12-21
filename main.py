@@ -3,7 +3,7 @@ from src.game import Game
 
 def main():
     # Create an instance of the Game class.
-    game = Game()
+    game = Game([1344, 768])
 
     # Start the game.
     game.start_game()

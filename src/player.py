@@ -9,6 +9,7 @@ class Player(Entity):
     """
     Class representing the player in the game.
     """
+
     def __init__(self, images_idle, images_walk, images_jump, images_slide, game):
         """
         Initializes the player with a given position and animation images.
@@ -18,21 +19,23 @@ class Player(Entity):
             images_walk (list): List of images for walking animation.
             images_jump (list): List of images for jumping animation.
             images_slide (list): List of images for sliding animation.
-            game (object): Game object.
+            game (Game): Game object.
         """
         self.assets = Assets()
         # Initial position of the player.
-        self.position = [100, 520]
+        self.position = self.assets.config["initial_player_position"]
 
         super().__init__(self.position, images_idle, PlayerState.IDLE, game)
+
         # Set initial health.
-        self.health = 1
+        self.health = self.assets.config["initial_player_health"]
 
         self.invincible = False
-        self.invincible_time = self.game.fps * 5
+        self.invincible_time = self.game.fps * self.assets.config["invincible_time"]
 
         # Create default weapon for the player.
-        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, game, self)
+        self.weapon = Weapon([self.position[0] + self.rect.width, self.position[1] + 30], WeaponType.DEFAULT, game,
+                             self)
 
         # Set images for player movement animations.
         self.images_idle = images_idle
@@ -41,22 +44,22 @@ class Player(Entity):
         self.images_slide = images_slide
 
         # Movement parameters.
-        self.speed = 5
-        self.jump_height = 20
+        self.speed = self.assets.config["player_speed"]
+        self.jump_height = self.assets.config["player_jump_height"]
         self.jump_speed = self.jump_height
         self.is_jumping = False
         self.is_sliding = False
-        self.slide_height = 600
-        self.slide_speed_reduction = 0.1
-        self.slide_end_position = 80
+        self.slide_height = self.assets.config["player_slide_height"]
+        self.slide_speed_reduction = self.assets.config["player_slide_speed_reduction"]
+        self.slide_end_position = self.assets.config["player_slide_end_position"]
         self.slide_speed = self.speed
         self.shoot_pressed = True
         # Cooldown parameters for sliding.
         self.slide_cooldown = 0
-        self.slide_cooldown_max = 150
+        self.slide_cooldown_max = self.assets.config["player_slide_cooldown_max"]
 
         # Initialize animation-related variables.
-        self.animation_speed = 6
+        self.animation_speed = self.assets.config["player_animation_speed"]
         self.current_frame = 0
 
         # Initialize player state.
@@ -73,6 +76,10 @@ class Player(Entity):
         }
 
     def handle_input(self):
+        """
+        Handles input for player. Executes specific movement / action according to user input.
+        """
+        # Get pressed keys.
         keys = pygame.key.get_pressed()
 
         if self.game.current_state == GameState.PLAYING:
@@ -187,10 +194,10 @@ class Player(Entity):
         # Check if the player is moving to the left or was moving to the left before jumping / sliding.
         moving_left = self.current_state == PlayerState.WALKING_LEFT
         moving_left_jump = self.current_state == PlayerState.JUMPING and \
-                                  self.previous_walking_state == PlayerState.WALKING_LEFT
+                           self.previous_walking_state == PlayerState.WALKING_LEFT
         moving_left_slide = (self.current_state == PlayerState.SLIDING or
-                                    self.current_state == PlayerState.IDLE) and \
-                                   self.previous_walking_state == PlayerState.WALKING_LEFT
+                             self.current_state == PlayerState.IDLE) and \
+                            self.previous_walking_state == PlayerState.WALKING_LEFT
         if moving_left or moving_left_jump or moving_left_slide:
             # Flip images vertically.
             self.image_list = [pygame.transform.flip(image, True, False) for image in self.image_list]
@@ -204,20 +211,24 @@ class Player(Entity):
         Update the animation frame based on the elapsed time.
         """
         # Calculate the index of the current frame based on the current frame counter and animation speed.
-        self.current_frame = (self.current_frame + self.animation_speed/100) % len(self.image_list)
+        self.current_frame = (self.current_frame + self.animation_speed / 100) % len(self.image_list)
 
         # Set the image of the sprite to the one corresponding to the calculated index.
         self.image = self.image_list[int(self.current_frame)]
 
     def shoot(self):
         """
-        Make the player shoot (if a weapon is equipped).
+        Make the player shoot (if a weapon is equipped, and he has shots left).
         """
         if self.weapon is not None and self.weapon.shots >= 1:
             self.weapon.fire()
+            # Play shooting sound.
             self.assets.sounds['shoot'].play()
 
     def update(self):
+        """
+        Updates player.
+        """
         self.handle_input()
         self.jump()
         self.slide()

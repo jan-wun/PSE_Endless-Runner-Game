@@ -27,25 +27,33 @@ class PlayerState(Enum):
 
 class EnemyType(Enum):
     """
-    Enumeration representing the type of an enemy.
+    Enumeration representing the various types of an enemy.
     """
     DRONE = "drone"
     ROBOT = "robot"
 
 
 class EnemyState(Enum):
+    """
+    Enumeration representing the various states of an enemy.
+    """
     IDLE = "idle"
     WALKING_RIGHT = "walking_right"
     WALKING_LEFT = "walking_left"
 
 
 class WeaponType(Enum):
+    """
+    Enumeration representing the various types of a weapon.
+    """
     DEFAULT = "default"
     UPGRADE = "upgrade"
 
 
 class PowerUpType(Enum):
+    """
+    Enumeration representing the various types of a power up.
+    """
     INVINCIBILITY = "invincibility"
     FREEZE = "freeze"
     MULTIPLE_SHOTS = "multiple_shots"
-

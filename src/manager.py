@@ -3,6 +3,10 @@ import os
 
 
 class SaveLoadSystem:
+    """
+    Responsible for saving and loading user-specific game data such as audio settings, coins, statistics, etc.
+    """
+
     def __init__(self, file_extension, save_folder):
         """
         Initializes a SaveLoadSystem instance.
