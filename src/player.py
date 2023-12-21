@@ -12,7 +12,7 @@ class Player(Entity):
 
     def __init__(self, images_idle, images_walk, images_jump, images_slide, game):
         """
-        Initializes the player with a given position and animation images.
+        Initializes the player with animation images.
 
         Args:
             images_idle (list): List of images for idle animation.
@@ -23,7 +23,7 @@ class Player(Entity):
         """
         self.assets = Assets()
         # Initial position of the player.
-        self.position = self.assets.config["initial_player_position"]
+        self.position = [100, 520]
 
         super().__init__(self.position, images_idle, PlayerState.IDLE, game)
 
@@ -64,7 +64,7 @@ class Player(Entity):
 
         # Initialize player state.
         self.current_state = PlayerState.IDLE
-        self.previous_walking_state = PlayerState.IDLE
+        self.previous_walking_state = None
 
         # Create a dictionary to map player states to animation sequences.
         self.animations = {
@@ -98,7 +98,7 @@ class Player(Entity):
                     self.is_jumping = True
             elif keys[pygame.K_DOWN]:
                 if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding and \
-                        self.slide_cooldown == 0:
+                        self.previous_walking_state and self.slide_cooldown == 0:
                     self.is_sliding = True
                     self.slide_cooldown = self.slide_cooldown_max
 

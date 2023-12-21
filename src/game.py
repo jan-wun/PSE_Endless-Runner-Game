@@ -198,14 +198,14 @@ class Game:
                     if not any(enemy.type == enemy_choice for enemy in self.enemies):
                         enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
                         self.enemies.add(Enemy(enemy_position, enemy_choice, self))
-            # Check powerup timer and add a random powerup object to powerups.
-            elif event.type == self.power_up_timer:
-                # Multiple_shots are only added to the random selection if the player has not collected them yet.
-                power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE]
-                if not self.player.sprite.weapon.shots == self.assets.config["multiple_shots"]:
-                    power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
-                power_up_choice = random.choice(power_up_list)
-                self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
+                # Check powerup timer and add a random powerup object to powerups.
+                elif event.type == self.power_up_timer:
+                    # Multiple_shots are only added to the random selection if the player has not collected them yet.
+                    power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE]
+                    if not self.player.sprite.weapon.shots == self.assets.config["multiple_shots"]:
+                        power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
+                    power_up_choice = random.choice(power_up_list)
+                    self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
 
     def update(self):
         """
