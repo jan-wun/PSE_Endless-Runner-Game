@@ -135,143 +135,12 @@ class Game:
 
         while True:
             for event in pygame.event.get():
-
-                # Handle quitting game (via ESC key or close button).
-                if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    self.end_game()
-
-                # Handle events in different GameStates.
-                # Handle game over state for restarting game (via SPACE key).
-                if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
-                        event.key == pygame.K_SPACE:
-                    self.restart_game()
-                # Handle paused state, display menu and check which button player clicks (resume, main_menu, quit).
-                elif self.current_state == GameState.PAUSED:
-                    self.pause_screen.display()
-                    result = self.pause_screen.handle_input(event)
-                    if result == "resume_button":
-                        self.current_state = GameState.PLAYING
-                    elif result == "main_menu_button":
-                        self.current_state = GameState.MAIN_MENU
-                        self.main_menu.display()
-                    elif result == "quit_button":
-                        self.end_game()
-                # Handle main menu state, display menu and check which
-                # button player clicks (play, settings, quit, shop, stats).
-                elif self.current_state == GameState.MAIN_MENU:
-                    self.main_menu.display()
-                    result = self.main_menu.handle_input(event)
-                    if result:
-                        if result == "play_button":
-                            self.current_state = GameState.PLAYING
-                        elif result == "settings_button":
-                            self.current_state = GameState.SETTINGS
-                        elif result == "shop_button":
-                            self.current_state = GameState.SHOP
-                        elif result == "stats_button":
-                            self.current_state = GameState.STATS
-                        elif result == "quit_button":
-                            self.end_game()
-                # Handle settings state, display menu and check whether player changes settings.
-                elif self.current_state == GameState.SETTINGS:
-                    self.settings_screen.display()
-                    result = self.settings_screen.handle_input(event)
-                    if result:
-                        if result == "back_button":
-                            self.current_state = GameState.MAIN_MENU
-                # Handle shop state, display menu and check whether player buys something.
-                elif self.current_state == GameState.SHOP:
-                    self.shop_menu.display()
-                    result = self.shop_menu.handle_input(event)
-                    if result:
-                        if result == "back_button":
-                            self.current_state = GameState.MAIN_MENU
-                        elif result == "buy_second_life_button":
-                            self.handle_shop_purchase(self.shop_menu.extra_life_costs, "extra_life")
-                        elif result == "buy_weapon_button":
-                            self.handle_shop_purchase(self.shop_menu.weapon_costs, "weapon_upgrade")
-                # Handle stats state, display menu and check for player clicks (back button).
-                elif self.current_state == GameState.STATS:
-                    self.stats_menu.display()
-                    result = self.stats_menu.handle_input(event)
-                    if result:
-                        if result == "back_button":
-                            self.current_state = GameState.MAIN_MENU
-                # Handle playing state.
-                elif self.current_state == GameState.PLAYING:
-                    # Check whether pause button or key (p) is clicked and pause game accordingly.
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and
-                        self.pause_button_rect.collidepoint(mouse_x, mouse_y)) or event.type == pygame.KEYDOWN and \
-                            event.key == pygame.K_p:
-                        self.pause_button_clicked = True
-                    elif (event.type == pygame.KEYUP and event.key == pygame.K_p) or (
-                            (event.type == pygame.MOUSEBUTTONUP and event.button == 1 and
-                             self.pause_button_rect.collidepoint(mouse_x, mouse_y)) and self.pause_button_clicked):
-                        self.pause_button_clicked = False
-                        self.pause_game()
-                    # Check obstacle timer and add car or meteor to obstacles.
-                    if not self.freeze:
-                        if event.type == self.obstacle_timer:
-                            self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
-                                                                       [pygame.transform.flip(image, True, False) for image
-                                                                        in self.car_images], 'car', 5, self),
-                                                              Obstacle([self.width + random.randint(200, 500), 585],
-                                                                       self.meteor_images, 'meteor', 0, self)]))
-                        # Check enemy timer and add drone or robot to enemies.
-                        elif event.type == self.enemy_timer:
-                            enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
-                            if not any(enemy.type == enemy_choice for enemy in self.enemies):
-                                enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
-                                self.enemies.add(Enemy(enemy_position, enemy_choice, self))
-                    # Check powerup timer and add a random powerup object to powerups.
-                    elif event.type == self.power_up_timer:
-                        power_up_choice = random.choice([PowerUpType.INVINCIBILITY, PowerUpType.FREEZE,
-                                                         PowerUpType.MULTIPLE_SHOTS])
-                        self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
+                # Handle different GameStates and events.
+                self.handle_states_and_events(event)
 
             # Update and render all game objects when game state is playing.
             if self.current_state == GameState.PLAYING:
-                # Update player.
-                self.player.update()
-
-                # Check whether freeze powerup was collected.
-                if self.freeze:
-                    if self.freeze_time > 0:
-                        self.freeze_time -= 1
-                    else:
-                        self.freeze = False
-                else:
-                    # Update all obstacles in the sprite group.
-                    self.obstacles.update()
-                    # Update all enemies in the sprite group.
-                    self.enemies.update()
-                    # Update all projectiles.
-                    self.projectiles.update()
-                    # Update all powerups in the sprite group.
-                    self.power_ups.update()
-
-                    # Functionality for scrolling background.
-                    self.background_x -= self.scrolling_bg_speed
-                    # Check if the background has scrolled off the screen and reset position.
-                    if self.background_x <= -self.width:
-                        self.background_x = 0
-
-                # Check for collision between player and obstacles.
-                self.player.sprite.check_collision(self.obstacles)
-                # Check for collision between player and enemies.
-                self.player.sprite.check_collision(self.enemies)
-                # Check for collision between player and projectiles.
-                self.player.sprite.check_collision(self.projectiles)
-                # Check for collision between enemies and projectiles.
-                [enemy.check_collision(self.projectiles) for enemy in self.enemies]
-                # Check for collision between player and powerup.
-                self.player.sprite.check_collision(self.power_ups)
-
-                # Update distance.
-                self.distance += 1
-
-                # Render game objects to the screen.
+                self.update()
                 self.render()
 
             # Show game over screen when game state is game over and save data of run.
@@ -299,6 +168,143 @@ class Game:
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
+
+    def handle_states_and_events(self, event):
+        # Handle quitting game (via ESC key or close button).
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+            self.end_game()
+        # Handle game over state for restarting game (via SPACE key).
+        if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
+                event.key == pygame.K_SPACE:
+            self.restart_game()
+        # Handle paused state, display menu and check which button player clicks (resume, main_menu, quit).
+        elif self.current_state == GameState.PAUSED:
+            self.pause_screen.display()
+            result = self.pause_screen.handle_input(event)
+            if result == "resume_button":
+                self.current_state = GameState.PLAYING
+            elif result == "main_menu_button":
+                self.current_state = GameState.MAIN_MENU
+                self.main_menu.display()
+            elif result == "quit_button":
+                self.end_game()
+        # Handle main menu state, display menu and check which
+        # button player clicks (play, settings, quit, shop, stats).
+        elif self.current_state == GameState.MAIN_MENU:
+            self.main_menu.display()
+            result = self.main_menu.handle_input(event)
+            if result:
+                if result == "play_button":
+                    self.current_state = GameState.PLAYING
+                elif result == "settings_button":
+                    self.current_state = GameState.SETTINGS
+                elif result == "shop_button":
+                    self.current_state = GameState.SHOP
+                elif result == "stats_button":
+                    self.current_state = GameState.STATS
+                elif result == "quit_button":
+                    self.end_game()
+        # Handle settings state, display menu and check whether player changes settings.
+        elif self.current_state == GameState.SETTINGS:
+            self.settings_screen.display()
+            result = self.settings_screen.handle_input(event)
+            if result:
+                if result == "back_button":
+                    self.current_state = GameState.MAIN_MENU
+        # Handle shop state, display menu and check whether player buys something.
+        elif self.current_state == GameState.SHOP:
+            self.shop_menu.display()
+            result = self.shop_menu.handle_input(event)
+            if result:
+                if result == "back_button":
+                    self.current_state = GameState.MAIN_MENU
+                elif result == "buy_second_life_button":
+                    self.handle_shop_purchase(self.shop_menu.extra_life_costs, "extra_life")
+                elif result == "buy_weapon_button":
+                    self.handle_shop_purchase(self.shop_menu.weapon_costs, "weapon_upgrade")
+        # Handle stats state, display menu and check for player clicks (back button).
+        elif self.current_state == GameState.STATS:
+            self.stats_menu.display()
+            result = self.stats_menu.handle_input(event)
+            if result:
+                if result == "back_button":
+                    self.current_state = GameState.MAIN_MENU
+        # Handle playing state.
+        elif self.current_state == GameState.PLAYING:
+            # Check whether pause button or key (p) is clicked and pause game accordingly.
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and
+                self.pause_button_rect.collidepoint(mouse_x, mouse_y)) or event.type == pygame.KEYDOWN and \
+                    event.key == pygame.K_p:
+                self.pause_button_clicked = True
+            elif (event.type == pygame.KEYUP and event.key == pygame.K_p) or (
+                    (event.type == pygame.MOUSEBUTTONUP and event.button == 1 and
+                     self.pause_button_rect.collidepoint(mouse_x, mouse_y)) and self.pause_button_clicked):
+                self.pause_button_clicked = False
+                self.pause_game()
+            # Check obstacle timer and add car or meteor to obstacles.
+            if not self.freeze:
+                if event.type == self.obstacle_timer:
+                    self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
+                                                               [pygame.transform.flip(image, True, False) for image
+                                                                in self.car_images], 'car', 5, self),
+                                                      Obstacle([self.width + random.randint(200, 500), 585],
+                                                               self.meteor_images, 'meteor', 0, self)]))
+                # Check enemy timer and add drone or robot to enemies.
+                elif event.type == self.enemy_timer:
+                    enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+                    if not any(enemy.type == enemy_choice for enemy in self.enemies):
+                        enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
+                        self.enemies.add(Enemy(enemy_position, enemy_choice, self))
+            # Check powerup timer and add a random powerup object to powerups.
+            elif event.type == self.power_up_timer:
+                power_up_choice = random.choice([PowerUpType.INVINCIBILITY, PowerUpType.FREEZE,
+                                                 PowerUpType.MULTIPLE_SHOTS])
+                self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
+
+    def update(self):
+        # Update player.
+        self.player.update()
+
+        # Check whether freeze powerup was collected.
+        if self.freeze:
+            if self.freeze_time > 0:
+                self.freeze_time -= 1
+            else:
+                self.freeze = False
+        else:
+            # Update all obstacles in the sprite group.
+            self.obstacles.update()
+            # Update all enemies in the sprite group.
+            self.enemies.update()
+            # Update all projectiles.
+            self.projectiles.update()
+            # Update all powerups in the sprite group.
+            self.power_ups.update()
+
+            # Functionality for scrolling background.
+            self.background_x -= self.scrolling_bg_speed
+            # Check if the background has scrolled off the screen and reset position.
+            if self.background_x <= -self.width:
+                self.background_x = 0
+
+        # Check for collisions between different game objects and handle them accordingly.
+        self.handle_collisions()
+
+        # Update distance.
+        self.distance += 1
+
+    def handle_collisions(self):
+        # Check for collision between player and obstacles.
+        self.player.sprite.check_collision(self.obstacles)
+        # Check for collision between player and enemies.
+        self.player.sprite.check_collision(self.enemies)
+        # Check for collision between player and projectiles.
+        self.player.sprite.check_collision(self.projectiles)
+        # Check for collision between enemies and projectiles.
+        [enemy.check_collision(self.projectiles) for enemy in self.enemies]
+        # Check for collision between player and powerup.
+        self.player.sprite.check_collision(self.power_ups)
 
     def render(self):
         """
