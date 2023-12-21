@@ -1,6 +1,8 @@
 import pygame
 import sys
 import random
+import subprocess
+from src.assets import Assets
 from src.enums import GameState, EnemyType, WeaponType, PowerUpType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
 from src.manager import SaveLoadSystem
@@ -9,7 +11,6 @@ from src.obstacle import Obstacle
 from src.enemy import Enemy
 from src.weapon import Weapon
 from src.powerup import PowerUp
-import subprocess
 
 
 class Game:
@@ -34,8 +35,8 @@ class Game:
         pygame.display.set_caption("Run the Cybernetic City: Endless Dash")
         self.fps = 70
 
-        # Load background image.
-        self.background = pygame.image.load("assets/images/background.png").convert_alpha()
+        # Load assets.
+        self.assets = Assets()
 
         # Initialize save load manager.
         self.save_load_manager = SaveLoadSystem(".save", "data")
@@ -44,35 +45,20 @@ class Game:
         self.coins = self.save_load_manager.load_game_data(["coins"], [0])
 
         # Create sprite group single for player.
-        player_idle = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/idle/idle{i}.png").convert_alpha(), 4) for i in range(1, 5)]
-        player_walk = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/walk/walk{i}.png").convert_alpha(), 4) for i in range(1, 7)]
-        player_jump = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/jump/jump{i}.png").convert_alpha(), 4) for i in range(1, 5)]
-        player_slide = [pygame.transform.scale_by(
-            pygame.image.load(f"assets/images/player/slide/slide{i}.png").convert_alpha(), 4) for i in range(1, 2)]
         self.player = pygame.sprite.GroupSingle()
-        self.player.add(Player(player_idle, player_walk, player_jump, player_slide, self))
+        self.player.add(Player(self.assets.player_idle, self.assets.player_walk, self.assets.player_jump,
+                               self.assets.player_slide, self))
 
         # Initialize menus.
         self.number_of_runs = self.save_load_manager.load_game_data(["run_distance"], [[0, 0]])[-2]
         self.game_over_screen = GameOverMenu(self)
-        self.pause_button_image = pygame.transform.scale_by(
-            pygame.image.load("assets/images/pause_button.png").convert_alpha(), 0.25)
-        self.pause_button_rect = self.pause_button_image.get_rect(
+        self.pause_button_rect = self.assets.pause_button_image.get_rect(
             topright=(self.width - 10, 10))
         self.pause_button_clicked = True
         self.pause_screen = PauseMenu(self)
-        self.music = pygame.mixer.Sound("assets/audio/music.mp3")
-        self.music.set_volume(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[0])
-        self.sounds = {
-            "click": pygame.mixer.Sound("assets/audio/click.mp3"),
-            "jump": pygame.mixer.Sound("assets/audio/jump.mp3"),
-            "shoot": pygame.mixer.Sound("assets/audio/shoot.mp3")
-        }
+        self.assets.music.set_volume(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[0])
         [sound.set_volume(self.save_load_manager.load_game_data(["volume"], [(0.1, 0.2)])[1]) for sound in
-         self.sounds.values()]
+         self.assets.sounds.values()]
         self.main_menu = MainMenu(self)
         self.stats_menu = StatsMenu(self)
         self.shop_menu = ShopMenu(self)
@@ -85,12 +71,6 @@ class Game:
         self.freeze_time = self.fps * 7
 
         # Initialize entities (enemies, powerups, obstacles, weapon).
-        # Create obstacle objects.
-        self.car_images = [
-            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/car.png").convert_alpha(), 1.5)]
-        self.meteor_images = [
-            pygame.transform.scale_by(pygame.image.load(f"assets/images/obstacles/meteor.png").convert_alpha(), 0.25)]
-
         # Add timer for obstacle objects.
         self.obstacle_timer = pygame.USEREVENT + 1
         pygame.time.set_timer(self.obstacle_timer, 2000)
@@ -131,7 +111,7 @@ class Game:
         clock = pygame.time.Clock()
 
         # Play background music.
-        self.music.play(-1)
+        self.assets.music.play(-1)
 
         while True:
             for event in pygame.event.get():
@@ -247,9 +227,9 @@ class Game:
                 if event.type == self.obstacle_timer:
                     self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
                                                                [pygame.transform.flip(image, True, False) for image
-                                                                in self.car_images], 'car', 5, self),
+                                                                in self.assets.car_images], 'car', 5, self),
                                                       Obstacle([self.width + random.randint(200, 500), 585],
-                                                               self.meteor_images, 'meteor', 0, self)]))
+                                                               self.assets.meteor_images, 'meteor', 0, self)]))
                 # Check enemy timer and add drone or robot to enemies.
                 elif event.type == self.enemy_timer:
                     enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
@@ -311,12 +291,12 @@ class Game:
         Renders all game objects to the screen.
         """
         # Draw the background image with scroll position.
-        self.screen.blit(self.background, (self.background_x, 0))
+        self.screen.blit(self.assets.background_image, (self.background_x, 0))
         # Create seamless scrolling effect.
-        self.screen.blit(self.background, (self.background_x + self.width, 0))
+        self.screen.blit(self.assets.background_image, (self.background_x + self.width, 0))
 
         # Display current score on screen.
-        distance_surface = pygame.font.SysFont("comicsansms", 40).render(f"Score: {self.distance}", True, (0, 255, 0))
+        distance_surface = self.assets.font_comicsans_big.render(f"Score: {self.distance}", True, (0, 255, 0))
         self.screen.blit(distance_surface, (10, 10))
 
         # Draw player.
@@ -340,7 +320,7 @@ class Game:
         self.projectiles.draw(self.screen)
 
         # Display pause button in the top right corner.
-        self.screen.blit(self.pause_button_image, self.pause_button_rect)
+        self.screen.blit(self.assets.pause_button_image, self.pause_button_rect)
 
         # Update the full display Surface to the screen.
         pygame.display.flip()
@@ -356,7 +336,8 @@ class Game:
         Ends the game.
         """
         # Save volume settings of music and sounds.
-        self.save_load_manager.save_data((self.music.get_volume(), self.sounds["shoot"].get_volume()), "volume")
+        self.save_load_manager.save_data((self.assets.music.get_volume(), self.assets.sounds["shoot"].get_volume()),
+                                         "volume")
 
         # Close game and window.
         pygame.quit()

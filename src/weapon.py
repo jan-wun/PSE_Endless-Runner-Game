@@ -1,4 +1,5 @@
 import pygame
+from src.assets import Assets
 from src.entity import Entity
 from src.enums import PlayerState, WeaponType
 from src.projectile import Projectile
@@ -16,28 +17,20 @@ class Weapon(Entity):
         Args:
             position (tuple): The initial position (x, y) of the weapon.
             weapon_type (WeaponType): The type of weapon.
-            damage (int): The damage inflicted by the weapon.
         """
+        self.assets = Assets()
         self.type = weapon_type
         self.player = player
         if self.type == WeaponType.DEFAULT:
-            self.projectile_image = pygame.transform.scale_by(
-                pygame.image.load("assets/images/bullets/default_weapon.png").convert_alpha(), 3)
+            self.projectile_image = self.assets.default_weapon_bullet
             self.shot_speed = 5
             self.shots = 1
-            images = [pygame.transform.scale_by(
-                pygame.image.load("assets/images/player/weapon/weapon1_right.png").convert_alpha(), 2.5),
-                      pygame.transform.scale_by(
-                          pygame.image.load("assets/images/player/weapon/weapon1_left.png").convert_alpha(), 2.5)]
+            images = self.assets.default_weapon_images
         else:
-            self.projectile_image = pygame.transform.scale_by(
-                pygame.image.load("assets/images/bullets/upgrade_weapon.png").convert_alpha(), 3)
+            self.projectile_image = self.assets.upgrade_weapon_bullet
             self.shot_speed = 8
             self.shots = 2
-            images = [pygame.transform.scale_by(
-                pygame.image.load("assets/images/player/weapon/weapon2_right.png").convert_alpha(), 2.5),
-                      pygame.transform.scale_by(
-                          pygame.image.load("assets/images/player/weapon/weapon2_left.png").convert_alpha(), 2.5)]
+            images = self.assets.upgrade_weapon_images
 
         super().__init__(position, images, None, game)
 
