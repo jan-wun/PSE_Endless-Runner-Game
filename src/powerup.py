@@ -18,7 +18,7 @@ class PowerUp(Entity):
         """
         self.assets = Assets()
         self.type = powerup_type
-        self.fall_speed = 3
+        self.fall_speed = self.assets.config["power_up_fall_speed"]
         # Set image based on PowerUpType.
         if self.type == PowerUpType.INVINCIBILITY:
             images = self.assets.invincible_powerup

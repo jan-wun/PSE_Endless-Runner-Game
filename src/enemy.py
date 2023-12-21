@@ -31,7 +31,8 @@ class Enemy(Entity):
             self.image_list = self.assets.robot_images
             self.projectile_image = self.assets.projectile_image
         # Set enemy speed based on type.
-        self.speed = 1 if self.type == EnemyType.ROBOT else 3
+        self.speed = self.assets.config["drone_speed"] if self.type == EnemyType.ROBOT else self.assets.config[
+            "robot_speed"]
 
         super().__init__(position, self.image_list, EnemyState.IDLE, game)
         self.attack_timer = 0
@@ -83,18 +84,21 @@ class Enemy(Entity):
                 if self.type == EnemyType.DRONE:
                     projectile_position = [self.position[0] + self.rect.width / 2, self.position[1] + self.rect.height]
                     self.game.projectiles.add(
-                        Projectile(projectile_position, [0, 5], [self.projectile_image], self.game, "enemy"))
+                        Projectile(projectile_position, [0, self.assets.config["projectile_velocity"]],
+                                   [self.projectile_image], self.game, "enemy"))
                 elif self.type == EnemyType.ROBOT:
                     if self.game.player.sprite.position[0] < self.position[0]:
                         projectile_position = [self.position[0] - self.projectile_image.get_width(),
                                                self.position[1] + 40]
                         self.game.projectiles.add(
-                            Projectile(projectile_position, [-5 - self.game.scrolling_bg_speed, 0],
+                            Projectile(projectile_position,
+                                       [-self.assets.config["projectile_velocity"] - self.game.scrolling_bg_speed, 0],
                                        [self.projectile_image], self.game, "enemy"))
                     else:
                         projectile_position = [self.position[0] + self.rect.width, self.position[1] + 40]
                         self.game.projectiles.add(
-                            Projectile(projectile_position, [5, 0], [self.projectile_image], self.game, "enemy"))
+                            Projectile(projectile_position, [self.assets.config["projectile_velocity"], 0],
+                                       [self.projectile_image], self.game, "enemy"))
 
     def update(self):
         """

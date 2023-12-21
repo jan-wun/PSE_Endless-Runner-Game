@@ -74,9 +74,9 @@ class Game:
         self.obstacle_timer = pygame.USEREVENT + 1
         self.enemy_timer = pygame.USEREVENT + 2
         self.power_up_timer = pygame.USEREVENT + 3
-        pygame.time.set_timer(self.obstacle_timer, 2000)
-        pygame.time.set_timer(self.enemy_timer, 5000)
-        pygame.time.set_timer(self.power_up_timer, 15000)
+        pygame.time.set_timer(self.obstacle_timer, self.assets.config["obstacle_timer"] * 1000)
+        pygame.time.set_timer(self.enemy_timer, self.assets.config["enemy_timer"] * 1000)
+        pygame.time.set_timer(self.power_up_timer, self.assets.config["power_up_timer"] * 1000)
 
         # Create sprite group single for player and add player.
         self.player = pygame.sprite.GroupSingle()
@@ -100,7 +100,7 @@ class Game:
         self.distance = 0
         # Variables for freeze power up.
         self.freeze = False
-        self.freeze_time = self.fps * self.assets.config["freeze_time_s"]
+        self.freeze_time = self.fps * self.assets.config["freeze_time"]
         # Flag whether data has already been updated for current run.
         self.updated_data = False
         # The main menu should only be shown on startup.

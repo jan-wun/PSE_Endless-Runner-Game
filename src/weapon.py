@@ -24,13 +24,13 @@ class Weapon(Entity):
         # Set image, shot speed and number of shots based on weapon type.
         if self.type == WeaponType.DEFAULT:
             self.projectile_image = self.assets.default_weapon_bullet
-            self.shot_speed = 5
-            self.shots = 1
+            self.shot_speed = self.assets.config["shot_speed_default_weapon"]
+            self.shots = self.assets.config["shots_default_weapon"]
             images = self.assets.default_weapon_images
         else:
             self.projectile_image = self.assets.upgrade_weapon_bullet
-            self.shot_speed = 8
-            self.shots = 2
+            self.shot_speed = self.assets.config["shot_speed_upgrade_weapon"]
+            self.shots = self.assets.config["shots_upgrade_weapon"]
             images = self.assets.upgrade_weapon_images
 
         super().__init__(position, images, None, game)
