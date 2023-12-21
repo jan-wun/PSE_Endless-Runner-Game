@@ -1,5 +1,6 @@
 import pygame
 import random
+from src.assets import Assets
 from src.entity import Entity
 from src.enums import EnemyType, EnemyState
 from src.projectile import Projectile
@@ -17,24 +18,17 @@ class Enemy(Entity):
             position (list): The initial position (x, y) of the enemy.
             enemy_type (EnemyType): The type of enemy.
         """
+        self.assets = Assets()
         self.type = enemy_type
 
         # Load enemy images based on type.
         if self.type == EnemyType.DRONE:
-            self.image_list = [pygame.transform.scale_by(
-                pygame.image.load(f"assets/images/enemies/drone/idle/idle{i}.png").convert_alpha(), 3) for i in
-                range(1, 5)]
-            self.projectile_image = pygame.transform.scale_by(
-                pygame.image.load(f"assets/images/bullets/capsule.png").convert_alpha(),
-                1.5)
+            self.image_list = self.assets.drone_images
+            self.projectile_image = self.assets.capsule_image
 
         else:
-            self.image_list = [pygame.transform.scale_by(
-                pygame.image.load(f"assets/images/enemies/robot/idle/idle{i}.png").convert_alpha(), 3) for i in
-                range(1, 5)]
-            self.projectile_image = pygame.transform.scale_by(
-                pygame.image.load(f"assets/images/bullets/projectile.png").convert_alpha(),
-                1.5)
+            self.image_list = self.assets.robot_images
+            self.projectile_image = self.assets.projectile_image
         super().__init__(position, self.image_list, EnemyState.IDLE, game)
         self.speed = 1 if self.type == EnemyType.ROBOT else 3
         self.attack_timer = 0
@@ -44,8 +38,7 @@ class Enemy(Entity):
         Handles enemy movement logic.
         """
         if self.type == EnemyType.DRONE:
-            if not self.current_state == EnemyState.WALKING_LEFT and self.position[
-                0] < self.game.width - self.rect.width:
+            if not self.current_state == EnemyState.WALKING_LEFT and self.position[0] < self.game.width - self.rect.width:
                 self.move_right()
             else:
                 if self.position[0] > 0:

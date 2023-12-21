@@ -1,6 +1,7 @@
 import pygame
 import pandas as pd
 import numpy as np
+from src.assets import Assets
 
 
 class Menu:
@@ -9,32 +10,15 @@ class Menu:
     """
 
     def __init__(self, game):
-        self.image = pygame.transform.scale(pygame.image.load("assets/images/menu.png").convert_alpha(), (1344, 768))
-        self.image_rect = self.image.get_rect()
-        self.font_big = pygame.font.Font("assets/fonts/stacker.ttf", 100)
-        self.font_middle = pygame.font.Font("assets/fonts/stacker.ttf", 60)
-        self.font_small = pygame.font.Font("assets/fonts/stacker.ttf", 30)
-        self.font_comicsans = pygame.font.SysFont("comicsans", 30)
-        self.font_comicsans_small = pygame.font.SysFont("comicsans", 22)
+        self.assets = Assets()
+        self.image = self.assets.menu_background
+        self.image_rect = self.assets.background_image.get_rect()
         self.game = game
         self.center = self.image_rect.center
         self.top = (self.center[0], 65)
         self.bottom = (self.center[0], self.image_rect.height - 65)
         self.left = (self.center[0] // 2, self.center[1])
         self.right = (self.center[0] + self.center[0] // 2, self.center[1])
-        self.settings_icon_big = pygame.transform.scale_by(
-            pygame.image.load("assets/images/settings.png").convert_alpha(), 0.6)
-        self.settings_icon_small = pygame.transform.scale_by(self.settings_icon_big, 0.5)
-        self.quit_icon = pygame.transform.scale_by(
-            pygame.image.load("assets/images/quit.png").convert_alpha(), 0.15)
-        self.stats_icon = pygame.transform.scale_by(pygame.image.load("assets/images/statistics.png").convert_alpha(),
-                                                    0.2)
-        self.shop_icon = pygame.transform.scale_by(pygame.image.load("assets/images/shopping_cart.png").convert_alpha(),
-                                                   0.05)
-        self.heart_icon = pygame.transform.scale_by(pygame.image.load("assets/images/heart.png").convert_alpha(),
-                                                    0.03)
-        self.weapon_icon = pygame.transform.scale_by(
-            pygame.image.load("assets/images/player/weapon/weapon2_right.png").convert_alpha(), 5)
         self.buttons = []
         self.sliders = []
 
@@ -119,11 +103,12 @@ class MainMenu(Menu):
     def __init__(self, game):
         super().__init__(game)
         self.buttons = [
-            Button("play_button", self.game.screen, self.center, "magenta", "play", "cyan", self.font_big),
-            Button("settings_button", self.game.screen, self.top, "blue", None, None, None, self.settings_icon_small),
-            Button("stats_button", self.game.screen, self.left, "cyan", "stats", "dodgerblue", self.font_middle),
-            Button("shop_button", self.game.screen, self.right, "cyan", "shop", "dodgerblue", self.font_middle),
-            Button("quit_button", self.game.screen, self.bottom, "blue", None, None, None, self.quit_icon)
+            Button("play_button", self.game.screen, self.center, "magenta", "play", "cyan", self.assets.font_big),
+            Button("settings_button", self.game.screen, self.top, "blue", None, None, None,
+                   self.assets.settings_icon_small),
+            Button("stats_button", self.game.screen, self.left, "cyan", "stats", "dodgerblue", self.assets.font_middle),
+            Button("shop_button", self.game.screen, self.right, "cyan", "shop", "dodgerblue", self.assets.font_middle),
+            Button("quit_button", self.game.screen, self.bottom, "blue", None, None, None, self.assets.quit_icon)
         ]
 
     def display(self):
@@ -153,25 +138,27 @@ class SettingsMenu(Menu):
 
         self.sliders = [
             Slider("music_slider", self.game.screen,
-                   self.left, (200, 40), self.game.music.get_volume(), 0, 100, self.font_comicsans),
+                   self.left, (200, 40), self.assets.music.get_volume(), 0, 100, self.assets.font_comicsans_middle),
             Slider("volume_slider", self.game.screen,
-                   self.right, (200, 40), self.game.sounds['shoot'].get_volume(), 0, 100, self.font_comicsans)
+                   self.right, (200, 40), self.assets.sounds['shoot'].get_volume(), 0, 100,
+                   self.assets.font_comicsans_middle)
         ]
         self.buttons = [
             Button("settings_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "settings",
-                   "dodgerblue", self.font_middle),
-            Button("settings_icon", self.game.screen, self.center, "blue", None, None, None, self.settings_icon_big),
-            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.font_middle)
+                   "dodgerblue", self.assets.font_middle),
+            Button("settings_icon", self.game.screen, self.center, "blue", None, None, None,
+                   self.assets.settings_icon_big),
+            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.assets.font_middle)
         ]
 
     def display(self):
         super().display()
 
         # Texts for music and sound volume.
-        music_volume = self.font_small.render("Music Volume", True, (0, 255, 255))
+        music_volume = self.assets.font_small.render("Music Volume", True, (0, 255, 255))
         music_volume_rect = music_volume.get_rect(center=(self.left[0] - 100, self.left[1] - 50))
         self.game.screen.blit(music_volume, music_volume_rect)
-        sound_volume = self.font_small.render("Sound Volume", True, (0, 255, 255))
+        sound_volume = self.assets.font_small.render("Sound Volume", True, (0, 255, 255))
         sound_volume_rect = sound_volume.get_rect(center=(self.right[0] + 100, self.right[1] - 50))
         self.game.screen.blit(sound_volume, sound_volume_rect)
 
@@ -181,9 +168,9 @@ class SettingsMenu(Menu):
     def handle_input(self, event):
         for slider in self.sliders:
             if slider.name == "music_slider":
-                self.game.music.set_volume(round(slider.get_value() / 100, 2))
+                self.assets.music.set_volume(round(slider.get_value() / 100, 2))
             elif slider.name == "volume_slider":
-                [sound.set_volume(round(slider.get_value() / 100, 2)) for sound in self.game.sounds.values()]
+                [sound.set_volume(round(slider.get_value() / 100, 2)) for sound in self.assets.sounds.values()]
 
         clicked_button = super().handle_input(event)
         return clicked_button
@@ -199,9 +186,9 @@ class StatsMenu(Menu):
 
         self.buttons = [
             Button("stats_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "statistics",
-                   "dodgerblue", self.font_middle),
-            Button("stats_icon", self.game.screen, self.center, "blue", None, None, None, self.stats_icon),
-            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.font_middle)
+                   "dodgerblue", self.assets.font_middle),
+            Button("stats_icon", self.game.screen, self.center, "blue", None, None, None, self.assets.stats_icon),
+            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.assets.font_middle)
         ]
 
     def display(self):
@@ -214,17 +201,17 @@ class StatsMenu(Menu):
         self.display_table(run_distance_df)
 
         # Display highscore.
-        highscore_text = self.font_small.render("Highscore", True, "cyan")
+        highscore_text = self.assets.font_small.render("Highscore", True, "cyan")
         highscore_text_rect = highscore_text.get_rect(center=(self.right[0] + 100, self.right[1] - 70))
-        highscore_number = self.font_comicsans.render(str(highscore), True, "dodgerblue")
+        highscore_number = self.assets.font_comicsans_middle.render(str(highscore), True, "dodgerblue")
         highscore_number_rect = highscore_number.get_rect(center=(self.right[0] + 100, self.right[1] - 35))
         self.game.screen.blit(highscore_text, highscore_text_rect)
         self.game.screen.blit(highscore_number, highscore_number_rect)
 
         # Display average distance.
-        average_text = self.font_small.render("Average Distance", True, "cyan")
+        average_text = self.assets.font_small.render("Average Distance", True, "cyan")
         average_text_rect = average_text.get_rect(center=(self.right[0] + 100, self.right[1] + 35))
-        average_number = self.font_comicsans.render(str(int(np.mean(distance_list))), True, "dodgerblue")
+        average_number = self.assets.font_comicsans_middle.render(str(int(np.mean(distance_list))), True, "dodgerblue")
         average_number_rect = average_number.get_rect(center=(self.right[0] + 100, self.right[1] + 70))
         self.game.screen.blit(average_text, average_text_rect)
         self.game.screen.blit(average_number, average_number_rect)
@@ -262,7 +249,7 @@ class StatsMenu(Menu):
         for i, col in enumerate(table_df.columns):
             cell_rect = pygame.Rect(table_x + i * cell_width, table_y, cell_width, cell_height)
             pygame.draw.rect(self.game.screen, (50, 50, 50), cell_rect)
-            cell_text = self.font_comicsans_small.render(col, True, "cyan")
+            cell_text = self.assets.font_comicsans_small.render(col, True, "cyan")
             self.game.screen.blit(cell_text, (cell_rect.x + cell_padding, cell_rect.y + cell_padding))
 
         # Draw the table rows.
@@ -271,7 +258,7 @@ class StatsMenu(Menu):
                 cell_rect = pygame.Rect(table_x + j * cell_width, table_y + (i + 1) * cell_height, cell_width,
                                         cell_height)
                 pygame.draw.rect(self.game.screen, (100, 100, 100) if i % 2 == 0 else (80, 80, 80), cell_rect)
-                cell_text = self.font_comicsans_small.render(str(value), True, "cyan")
+                cell_text = self.assets.font_comicsans_small.render(str(value), True, "cyan")
                 self.game.screen.blit(cell_text, (cell_rect.x + cell_padding, cell_rect.y + cell_padding))
 
     def handle_input(self, event):
@@ -283,6 +270,7 @@ class ShopMenu(Menu):
     """
     Represents the shop menu.
     """
+
     def __init__(self, game):
         super().__init__(game)
         self.shop_warning_insufficient_coins = """
@@ -303,23 +291,23 @@ class ShopMenu(Menu):
         self.weapon_costs = 50
         self.buttons = [
             Button("shop_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "shop",
-                   "dodgerblue", self.font_middle),
-            Button("shop_icon", self.game.screen, self.center, "blue", None, None, None, self.shop_icon),
+                   "dodgerblue", self.assets.font_middle),
+            Button("shop_icon", self.game.screen, self.center, "blue", None, None, None, self.assets.shop_icon),
             Button("coins_text", self.game.screen, (self.center[0], self.center[1] - 125), "dodgerblue",
-                   f"Coins: {self.game.coins}", "cyan", self.font_comicsans),
+                   f"Coins: {self.game.coins}", "cyan", self.assets.font_comicsans_middle),
             Button("heart_icon", self.game.screen, (self.left[0] - 100, self.left[1]), "red",
-                   None, None, None, self.heart_icon),
+                   None, None, None, self.assets.heart_icon),
             Button("buy_second_life_button", self.game.screen, (self.left[0] - 100, self.left[1] + 90), "dodgerblue",
-                   "buy", "cyan", self.font_small),
+                   "buy", "cyan", self.assets.font_small),
             Button("second_life_costs_text", self.game.screen, (self.left[0] - 100, self.left[1] - 90), "dodgerblue",
-                   f"Costs: {self.extra_life_costs}", "cyan", self.font_comicsans),
+                   f"Costs: {self.extra_life_costs}", "cyan", self.assets.font_comicsans_middle),
             Button("weapon_icon", self.game.screen, (self.right[0] + 100, self.right[1]), "grey",
-                   None, None, None, self.weapon_icon),
+                   None, None, None, self.assets.weapon_icon),
             Button("buy_weapon_button", self.game.screen, (self.right[0] + 100, self.right[1] + 90), "dodgerblue",
-                   "buy", "cyan", self.font_small),
+                   "buy", "cyan", self.assets.font_small),
             Button("weapon_costs_text", self.game.screen, (self.right[0] + 100, self.right[1] - 90), "dodgerblue",
-                   f"Costs: {self.weapon_costs}", "cyan", self.font_comicsans),
-            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.font_middle)
+                   f"Costs: {self.weapon_costs}", "cyan", self.assets.font_comicsans_middle),
+            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.assets.font_middle)
         ]
 
     def display(self):
@@ -339,8 +327,7 @@ class GameOverMenu:
     """
 
     def __init__(self, game):
-        # Load game over image.
-        self.image = pygame.transform.scale_by(pygame.image.load("assets/images/game_over.png").convert_alpha(), 0.5)
+        self.assets = Assets()
         self.game = game
 
     def show(self, screen, distance, highscore):
@@ -348,25 +335,24 @@ class GameOverMenu:
         screen.fill((0, 0, 0))
 
         # Draw game over image on screen.
-        screen.blit(self.image, ((screen.get_width() - self.image.get_width()) / 2,
-                                 (screen.get_height() - self.image.get_height()) / 2))
-        # Font for texts.
-        font = pygame.font.SysFont("comicsansms", 72)
+        screen.blit(self.assets.game_over_image, ((screen.get_width() - self.assets.game_over_image.get_width()) / 2,
+                                                  (screen.get_height() - self.assets.game_over_image.get_height()) / 2))
 
         # Text for travelled score.
-        score_surface = font.render(f"Reached Score: {distance}", True, (0, 0, 255))
+        score_surface = self.assets.font_comicsans_big.render(f"Reached Score: {distance}", True, (0, 0, 255))
         screen.blit(score_surface, ((screen.get_width() - score_surface.get_width()) / 2, 20))
 
         # Text for highscore.
-        highscore_surface = font.render(f"Highscore: {highscore}", True, (0, 0, 255))
+        highscore_surface = self.assets.font_comicsans_big.render(f"Highscore: {highscore}", True, (0, 0, 255))
         screen.blit(highscore_surface, ((screen.get_width() - highscore_surface.get_width()) / 2, 120))
 
         # Text for coins.
-        coins_surface = font.render(f"Coins received: {int(self.game.distance/100)}", True, (0, 0, 255))
+        coins_surface = self.assets.font_comicsans_big.render(f"Coins received: {int(self.game.distance / 100)}", True,
+                                                    (0, 0, 255))
         screen.blit(coins_surface, ((screen.get_width() - coins_surface.get_width()) / 2, 220))
 
         # Text for restarting game.
-        text_surface = font.render("Press space to run!", True, (0, 0, 255))
+        text_surface = self.assets.font_comicsans_big.render("Press space to run!", True, (0, 0, 255))
         screen.blit(text_surface, ((screen.get_width() - text_surface.get_width()) / 2, 500))
 
         # Update display.
@@ -382,15 +368,15 @@ class PauseMenu(Menu):
         super().__init__(game)
 
         # Load different background image for pause screen.
-        self.image = pygame.transform.scale_by(pygame.image.load("assets/images/pause.png").convert_alpha(), 0.15)
+        self.image = self.assets.pause_image
 
         self.buttons = [
             Button("resume_button", self.game.screen, (self.image_rect.centerx, 275), "green", "resume", "green",
-                   self.font_small),
+                   self.assets.font_small),
             Button("main_menu_button", self.game.screen, (self.image_rect.centerx, 375), "dodgerblue", "main menu",
-                   "dodgerblue", self.font_small),
+                   "dodgerblue", self.assets.font_small),
             Button("quit_button", self.game.screen, (self.image_rect.centerx, 475), "red", "quit", "red",
-                   self.font_small)
+                   self.assets.font_small)
         ]
 
     def display(self):
@@ -399,7 +385,7 @@ class PauseMenu(Menu):
         super().display(pos)
 
         # Paused text.
-        paused = self.font_middle.render("paused", True, "cyan")
+        paused = self.assets.font_middle.render("paused", True, "cyan")
         self.game.screen.blit(paused, (self.image_rect.centerx - paused.get_width() // 2, 100))
 
         # Update display.

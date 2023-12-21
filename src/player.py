@@ -1,4 +1,5 @@
 import pygame
+from src.assets import Assets
 from src.entity import Entity
 from src.enums import PlayerState, WeaponType, GameState
 from src.weapon import Weapon
@@ -19,6 +20,7 @@ class Player(Entity):
             images_slide (list): List of images for sliding animation.
             game (object): Game object.
         """
+        self.assets = Assets()
         # Initial position of the player.
         self.position = [100, 520]
 
@@ -85,7 +87,7 @@ class Player(Entity):
             # Handle jump and slide input.
             if keys[pygame.K_UP]:
                 if not self.is_jumping and not self.is_sliding:
-                    self.game.sounds["jump"].play()
+                    self.assets.sounds["jump"].play()
                     self.is_jumping = True
             elif keys[pygame.K_DOWN]:
                 if (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]) and not self.is_jumping and not self.is_sliding and \
@@ -213,7 +215,7 @@ class Player(Entity):
         """
         if self.weapon is not None and self.weapon.shots >= 1:
             self.weapon.fire()
-            self.game.sounds['shoot'].play()
+            self.assets.sounds['shoot'].play()
 
     def update(self):
         self.handle_input()
