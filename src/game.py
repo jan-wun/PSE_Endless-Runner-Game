@@ -11,6 +11,7 @@ from src.obstacle import Obstacle
 from src.enemy import Enemy
 from src.weapon import Weapon
 from src.powerup import PowerUp
+from src.projectile import Projectile
 
 
 class Game:
@@ -307,6 +308,14 @@ class Game:
         pygame.quit()
         sys.exit()
 
+    def reset_timers(self):
+        """
+        Resets timers for obstacles, enemies, and power-ups.
+        """
+        pygame.time.set_timer(self.obstacle_timer, self.assets.config["obstacle_timer"] * 1000)
+        pygame.time.set_timer(self.enemy_timer, self.assets.config["enemy_timer"] * 1000)
+        pygame.time.set_timer(self.power_up_timer, self.assets.config["power_up_timer"] * 1000)
+
     def restart_game(self):
         """
         Restarts the game.
@@ -322,6 +331,9 @@ class Game:
 
         # Reset variables for next run.
         self.set_up_run(False)
+
+        # Reset timers.
+        self.reset_timers()
 
         # Re-instantiate shop for updated coins.
         self.shop_menu = ShopMenu(self)
@@ -376,20 +388,29 @@ class Game:
                     # Apply power up and kill it.
                     hit_sprite.apply_powerup()
                     hit_sprite.kill()
+                elif isinstance(hit_sprite, Projectile):
+                    if hit_sprite.shooter != "player":
+                        self.handle_player_collision()
                 else:
-                    # Check whether player is invincible.
-                    if not self.player.sprite.invincible:
-                        # Decrease player health.
-                        self.player.sprite.health -= 1
-                        # Check whether player has no lives.
-                        if self.player.sprite.health == 0:
-                            # Set game state to game over.
-                            self.current_state = GameState.GAME_OVER
-                        else:
-                            # Kill obstacles, enemies and projectiles and let player continue run.
-                            [obstacle.kill() for obstacle in self.obstacles]
-                            [enemy.kill() for enemy in self.enemies]
-                            [projectile.kill() for projectile in self.projectiles]
+                    self.handle_player_collision()
+
+    def handle_player_collision(self):
+        """
+        Handles player collision.
+        """
+        # Check whether player is invincible.
+        if not self.player.sprite.invincible:
+            # Decrease player health.
+            self.player.sprite.health -= 1
+            # Check whether player has no lives.
+            if self.player.sprite.health == 0:
+                # Set game state to game over.
+                self.current_state = GameState.GAME_OVER
+            else:
+                # Kill obstacles, enemies and projectiles and let player continue run.
+                [obstacle.kill() for obstacle in self.obstacles]
+                [enemy.kill() for enemy in self.enemies]
+                [projectile.kill() for projectile in self.projectiles]
 
     def handle_shop_purchase(self, item_costs, item_name):
         """
