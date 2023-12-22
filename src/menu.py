@@ -245,7 +245,8 @@ class StatsMenu(Menu):
         highscore, run_distance_df, distance_list = self.get_highscore_and_run_distance()
 
         # Display dataframe with travelled distance of last 10 runs as table.
-        self.display_table(run_distance_df)
+        if self.game.number_of_runs > 0:
+            self.display_table(run_distance_df)
 
         # Display highscore.
         highscore_text = self.assets.font_small.render("Highscore", True, "cyan")
@@ -255,10 +256,14 @@ class StatsMenu(Menu):
         self.game.screen.blit(highscore_text, highscore_text_rect)
         self.game.screen.blit(highscore_number, highscore_number_rect)
 
-        # Display average distance.
+        # Display average distance of all runs (not only last 10).
         average_text = self.assets.font_small.render("Average Distance", True, "cyan")
         average_text_rect = average_text.get_rect(center=(self.right[0] + 100, self.right[1] + 35))
-        average_number = self.assets.font_comicsans_middle.render(str(int(np.mean(distance_list))), True, "dodgerblue")
+        if distance_list:
+            average = int(np.mean(distance_list))
+        else:
+            average = 0
+        average_number = self.assets.font_comicsans_middle.render(str(average), True, "dodgerblue")
         average_number_rect = average_number.get_rect(center=(self.right[0] + 100, self.right[1] + 70))
         self.game.screen.blit(average_text, average_text_rect)
         self.game.screen.blit(average_number, average_number_rect)
@@ -281,6 +286,7 @@ class StatsMenu(Menu):
                                                                                   [0, [0, 0]])
         run_list = []
         distance_list = []
+        distance_list_all = run_distance_list[3::2]
         for index, run_distance in enumerate(run_distance_list[-22:]):
             if index > 1:
                 if (index + 1) % 2 == 0:
@@ -291,8 +297,7 @@ class StatsMenu(Menu):
         # Create DataFrame from distance and run lists for table format.
         run_distance_dict = {"Run": run_list, "Distance": distance_list}
         run_distance_df = pd.DataFrame(run_distance_dict)
-
-        return highscore, run_distance_df, distance_list
+        return highscore, run_distance_df, distance_list_all
 
     def display_table(self, table_df):
         """
@@ -303,9 +308,9 @@ class StatsMenu(Menu):
         """
         # Cell and table settings
         cell_padding = 5
-        table_x, table_y = self.left[0] - 250, self.left[1] - 250
-        cell_width = 150
         cell_height = 40
+        cell_width = 150
+        table_x, table_y = self.left[0] - 250, self.left[1] - ((table_df.shape[0] + 1) * cell_height / 2)
 
         # Draw the table columns.
         for i, col in enumerate(table_df.columns):
@@ -371,13 +376,13 @@ class ShopMenu(Menu):
                    f"Coins: {self.game.coins}", "cyan", self.assets.font_comicsans_middle),
             Button("heart_icon", self.game.screen, (self.left[0] - 100, self.left[1]), "red",
                    None, None, None, self.assets.heart_icon),
-            Button("buy_second_life_button", self.game.screen, (self.left[0] - 100, self.left[1] + 90), "dodgerblue",
+            Button("buy_second_life_button", self.game.screen, (self.left[0] - 100, self.left[1] + 120), "dodgerblue",
                    "buy", "cyan", self.assets.font_small),
             Button("second_life_costs_text", self.game.screen, (self.left[0] - 100, self.left[1] - 90), "dodgerblue",
                    f"Costs: {self.extra_life_costs}", "cyan", self.assets.font_comicsans_middle),
             Button("weapon_icon", self.game.screen, (self.right[0] + 100, self.right[1]), "grey",
                    None, None, None, self.assets.weapon_icon),
-            Button("buy_weapon_button", self.game.screen, (self.right[0] + 100, self.right[1] + 90), "dodgerblue",
+            Button("buy_weapon_button", self.game.screen, (self.right[0] + 100, self.right[1] + 120), "dodgerblue",
                    "buy", "cyan", self.assets.font_small),
             Button("weapon_costs_text", self.game.screen, (self.right[0] + 100, self.right[1] - 90), "dodgerblue",
                    f"Costs: {self.weapon_costs}", "cyan", self.assets.font_comicsans_middle),
@@ -389,6 +394,21 @@ class ShopMenu(Menu):
         Displays the menu on the screen.
         """
         super().display()
+
+        # Info text for second life item.
+        second_life_info = self.assets.font_comicsans_small.render("Second life for the next run", True, "dodgerblue")
+        second_life_info_rect = second_life_info.get_rect(center=(self.left[0] - 100, self.left[1] + 75))
+        self.game.screen.blit(second_life_info, second_life_info_rect)
+
+        # Info text for upgrade weapon.
+        upgrade_weapon_info_1 = self.assets.font_comicsans_small.render("Upgraded weapon for the next run", True,
+                                                                             "dodgerblue")
+        upgrade_weapon_info_2 = self.assets.font_comicsans_small.render("(faster and 2 shots)", True,
+                                                                             "dodgerblue")
+        upgrade_weapon_info_rect1 = upgrade_weapon_info_1.get_rect(center=(self.right[0] + 100, self.right[1] + 50))
+        upgrade_weapon_info_rect2 = upgrade_weapon_info_2.get_rect(center=(self.right[0] + 100, self.right[1] + 80))
+        self.game.screen.blit(upgrade_weapon_info_1, upgrade_weapon_info_rect1)
+        self.game.screen.blit(upgrade_weapon_info_2, upgrade_weapon_info_rect2)
 
         # Update display.
         pygame.display.flip()

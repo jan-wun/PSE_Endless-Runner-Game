@@ -299,11 +299,10 @@ class Game:
         """
         Quits the game and saves audio settings and data from last attempt.
         """
-        # Save data from last attempt and volume settings of music and sounds.
+        # Save game data and volume settings of music and sounds.
         self.save_load_manager.save_game_data(
-            [(self.assets.music.get_volume(), self.assets.sounds["shoot"].get_volume()),
-             [self.number_of_runs, self.distance], self.highscore, self.coins],
-            ["volume", "run_distance", "highscore", "coins"], ["wb", "ab", "wb", "wb"])
+            [(self.assets.music.get_volume(), self.assets.sounds["shoot"].get_volume()), self.highscore, self.coins],
+            ["volume", "highscore", "coins"], ["wb", "wb", "wb"])
 
         # Close game and window.
         pygame.quit()
