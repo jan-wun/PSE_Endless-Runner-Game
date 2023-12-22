@@ -25,12 +25,14 @@ class Weapon(Entity):
         if self.type == WeaponType.DEFAULT:
             self.projectile_image = self.assets.default_weapon_bullet
             self.shot_speed = self.assets.config["shot_speed_default_weapon"]
-            self.shots = self.assets.config["shots_default_weapon"]
+            self.max_shots = self.assets.config["shots_default_weapon"]
+            self.shots = self.max_shots
             images = self.assets.default_weapon_images
         else:
             self.projectile_image = self.assets.upgrade_weapon_bullet
             self.shot_speed = self.assets.config["shot_speed_upgrade_weapon"]
-            self.shots = self.assets.config["shots_upgrade_weapon"]
+            self.max_shots = self.assets.config["shots_upgrade_weapon"]
+            self.shots = self.max_shots
             images = self.assets.upgrade_weapon_images
 
         super().__init__(position, images, None, game)

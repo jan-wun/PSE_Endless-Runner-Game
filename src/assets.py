@@ -54,9 +54,11 @@ class Assets(object):
 
         # Images for obstacles.
         self.car_images = [
-            pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "obstacles/car.png")).convert_alpha(), 1.5)]
+            pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "obstacles/car.png")).convert_alpha(),
+                                      1.5)]
         self.meteor_images = [
-            pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "obstacles/meteor.png")).convert_alpha(), 0.25)]
+            pygame.transform.scale_by(
+                pygame.image.load(os.path.join(image_path, "obstacles/meteor.png")).convert_alpha(), 0.25)]
 
         # Images for enemies.
         self.drone_images = [pygame.transform.scale_by(
@@ -73,34 +75,51 @@ class Assets(object):
             1.5)
 
         # Images for menus.
-        self.menu_background = pygame.transform.scale(pygame.image.load(os.path.join(image_path, "menu.png")).convert_alpha(),
-                                                      (1344, 768))
+        self.menu_background = pygame.transform.scale(
+            pygame.image.load(os.path.join(image_path, "menu.png")).convert_alpha(),
+            (1344, 768))
         self.game_over_image = pygame.transform.scale_by(
             pygame.image.load(os.path.join(image_path, "game_over.png")).convert_alpha(), 0.5)
-        self.pause_image = pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "pause.png")).convert_alpha(), 0.15)
+        self.pause_image = pygame.transform.scale_by(
+            pygame.image.load(os.path.join(image_path, "pause.png")).convert_alpha(), 0.15)
         self.settings_icon_big = pygame.transform.scale_by(
             pygame.image.load(os.path.join(image_path, "icons/settings.png")).convert_alpha(), 0.6)
         self.settings_icon_small = pygame.transform.scale_by(self.settings_icon_big, 0.5)
         self.quit_icon = pygame.transform.scale_by(
             pygame.image.load(os.path.join(image_path, "icons/quit.png")).convert_alpha(), 0.15)
-        self.stats_icon = pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "icons/statistics.png")).convert_alpha(),
-                                                    0.2)
-        self.shop_icon = pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "icons/shopping_cart.png")).convert_alpha(),
-                                                   0.05)
-        self.heart_icon = pygame.transform.scale_by(pygame.image.load(os.path.join(image_path, "icons/heart.png")).convert_alpha(),
-                                                    0.03)
+        self.stats_icon = pygame.transform.scale_by(
+            pygame.image.load(os.path.join(image_path, "icons/statistics.png")).convert_alpha(),
+            0.2)
+        self.shop_icon = pygame.transform.scale_by(
+            pygame.image.load(os.path.join(image_path, "icons/shopping_cart.png")).convert_alpha(),
+            0.05)
+        self.heart_icon = pygame.transform.scale_by(
+            pygame.image.load(os.path.join(image_path, "icons/heart.png")).convert_alpha(),
+            0.03)
         self.weapon_icon = pygame.transform.scale_by(
             pygame.image.load(os.path.join(image_path, "player/weapon/weapon2_right.png")).convert_alpha(), 5)
 
         # Images for power ups.
         self.invincible_powerup = [
-            pygame.transform.scale(pygame.image.load(os.path.join(image_path, "power_ups/invincible.png")).convert_alpha(),
-                                   (56, 56))]
+            pygame.transform.scale(
+                pygame.image.load(os.path.join(image_path, "power_ups/invincible.png")).convert_alpha(),
+                (56, 56))]
+        self.invincible_powerup_inactive = [
+            pygame.transform.scale(
+                pygame.image.load(os.path.join(image_path, "power_ups/invincible_inactive.png")).convert_alpha(),
+                (56, 56))]
         self.freeze_powerup = [
             pygame.transform.scale(pygame.image.load(os.path.join(image_path, "power_ups/freeze.png")).convert_alpha(),
                                    (56, 56))]
+        self.freeze_powerup_inactive = [
+            pygame.transform.scale(
+                pygame.image.load(os.path.join(image_path, "power_ups/freeze_inactive.png")).convert_alpha(),
+                (56, 56))]
         self.multiple_shots_power_up = [pygame.transform.scale(
             pygame.image.load(os.path.join(image_path, "power_ups/multiple_shots.png")).convert_alpha(), (56, 56))]
+        self.multiple_shots_power_up_inactive = [pygame.transform.scale(
+            pygame.image.load(os.path.join(image_path, "power_ups/multiple_shots_inactive.png")).convert_alpha(),
+            (56, 56))]
 
         # Images for weapon.
         self.default_weapon_bullet = pygame.transform.scale_by(

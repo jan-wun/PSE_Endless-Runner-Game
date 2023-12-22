@@ -37,6 +37,7 @@ class PowerUp(Entity):
         elif self.type == PowerUpType.FREEZE:
             self.game.freeze = True
         elif self.type == PowerUpType.MULTIPLE_SHOTS:
+            self.game.player.sprite.weapon.max_shots = self.assets.config["multiple_shots"]
             self.game.player.sprite.weapon.shots = self.assets.config["multiple_shots"]
 
     def move(self):

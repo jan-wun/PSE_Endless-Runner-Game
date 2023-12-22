@@ -239,6 +239,7 @@ class Player(Entity):
                 self.invincible_time -= 1
             else:
                 self.invincible = False
+                self.invincible_time = self.game.fps * self.assets.config["invincible_time"]
         self.update_animation()
         # Set the previous walking state at the end of the update method.
         if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:

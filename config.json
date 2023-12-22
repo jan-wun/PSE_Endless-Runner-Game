@@ -3,7 +3,7 @@
   "font_path": "assets/fonts",
   "image_path": "assets/images/",
   "fps": 60,
-  "freeze_time": 7,
+  "freeze_time": 6,
   "scrolling_bg_speed": 4,
   "multiple_shots": 5,
   "obstacle_timer": 2,
@@ -27,5 +27,7 @@
   "drone_speed": 1,
   "robot_speed": 3,
   "power_up_fall_speed": 3,
-  "projectile_velocity": 5
+  "projectile_velocity": 5,
+  "upgrade_weapon_costs": 50,
+  "extra_life_costs": 100
 }

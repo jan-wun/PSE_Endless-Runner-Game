@@ -204,7 +204,7 @@ class Game:
                 elif event.type == self.power_up_timer:
                     # Multiple_shots are only added to the random selection if the player has not collected them yet.
                     power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE]
-                    if not self.player.sprite.weapon.shots == self.assets.config["multiple_shots"]:
+                    if not self.player.sprite.weapon.max_shots == self.assets.config["multiple_shots"]:
                         power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
                     power_up_choice = random.choice(power_up_list)
                     self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
@@ -222,6 +222,7 @@ class Game:
                 self.freeze_time -= 1
             else:
                 self.freeze = False
+                self.freeze_time = self.fps * self.assets.config["freeze_time"]
         else:
             # Update all objects in every sprite group (obstacles, enemies, power ups, projectiles).
             self.obstacles.update()
@@ -270,6 +271,13 @@ class Game:
         self.enemies.draw(self.screen)
         self.power_ups.draw(self.screen)
         self.projectiles.draw(self.screen)
+
+        # Display number of player lifes.
+        self.screen.blit(self.assets.font_comicsans_big.render(f"Lifes: {self.player.sprite.health}", True, "cyan"),
+                         (10, 60))
+
+        # Draw icons for power ups on the screen.
+        self.display_power_ups()
 
         # Update the full display Surface to the screen.
         pygame.display.flip()
@@ -347,9 +355,17 @@ class Game:
         """
         if result == "resume_button":
             self.current_state = GameState.PLAYING
-        elif result in ("restart_button", "play_button"):
+        elif result == "restart_button":
             self.current_state = GameState.PLAYING
             self.restart_game()
+        elif result == "play_button":
+            self.current_state = GameState.PLAYING
+            health = self.player.sprite.health
+            weapon = self.player.sprite.weapon
+            self.restart_game()
+            self.player.sprite.health = health
+            self.player.sprite.weapon = weapon
+
         elif result == "settings_button":
             self.current_state = GameState.SETTINGS
         elif result == "shop_button":
@@ -358,6 +374,7 @@ class Game:
             self.current_state = GameState.STATS
         elif result == "main_menu_button":
             self.current_state = GameState.MAIN_MENU
+            self.player.sprite.reset()
         elif result == "back_button":
             self.current_state = GameState.MAIN_MENU
         elif result == "buy_second_life_button":
@@ -476,3 +493,33 @@ class Game:
         else:
             # Show warning message.
             subprocess.call(already_bought_script, shell=True)
+
+    def display_power_ups(self):
+        """
+        Displays power ups on screen. If they are grey, they are not active.
+        """
+        for power_up_type in PowerUpType:
+            time_left = ""
+            if power_up_type == PowerUpType.MULTIPLE_SHOTS:
+                if self.player.sprite.weapon.max_shots == self.assets.config["multiple_shots"]:
+                    image = self.assets.multiple_shots_power_up
+                    time_left = u"\u221E"
+                else:
+                    image = self.assets.multiple_shots_power_up_inactive
+                height = 100
+            if power_up_type == PowerUpType.FREEZE:
+                if self.freeze:
+                    image = self.assets.freeze_powerup
+                    time_left = round(self.freeze_time / self.fps, 1)
+                else:
+                    image = self.assets.freeze_powerup_inactive
+                height = 170
+            if power_up_type == PowerUpType.INVINCIBILITY:
+                if self.player.sprite.invincible:
+                    image = self.assets.invincible_powerup
+                    time_left = round(self.player.sprite.invincible_time / self.fps, 1)
+                else:
+                    image = self.assets.invincible_powerup_inactive
+                height = 240
+            self.screen.blit(image[0], (self.width - 70, height))
+            self.screen.blit(self.assets.font_comicsans_small.render(str(time_left), True, "cyan"), (self.width - 105, height + 15))

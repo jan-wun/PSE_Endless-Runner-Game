@@ -366,8 +366,8 @@ class ShopMenu(Menu):
         buttons "OK"
         """
 
-        self.extra_life_costs = 100
-        self.weapon_costs = 50
+        self.extra_life_costs = self.assets.config["extra_life_costs"]
+        self.weapon_costs = self.assets.config["upgrade_weapon_costs"]
         self.buttons = [
             Button("shop_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "shop",
                    "dodgerblue", self.assets.font_middle),
@@ -402,9 +402,9 @@ class ShopMenu(Menu):
 
         # Info text for upgrade weapon.
         upgrade_weapon_info_1 = self.assets.font_comicsans_small.render("Upgraded weapon for the next run", True,
-                                                                             "dodgerblue")
+                                                                        "dodgerblue")
         upgrade_weapon_info_2 = self.assets.font_comicsans_small.render("(faster and 2 shots)", True,
-                                                                             "dodgerblue")
+                                                                        "dodgerblue")
         upgrade_weapon_info_rect1 = upgrade_weapon_info_1.get_rect(center=(self.right[0] + 100, self.right[1] + 50))
         upgrade_weapon_info_rect2 = upgrade_weapon_info_2.get_rect(center=(self.right[0] + 100, self.right[1] + 80))
         self.game.screen.blit(upgrade_weapon_info_1, upgrade_weapon_info_rect1)
