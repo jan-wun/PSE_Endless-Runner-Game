@@ -71,13 +71,15 @@ class Game:
         # Set variables for current run.
         self.set_up_run()
 
-        # Initialize and set timers for obstacle, enemy and power up objects.
+        # Initialize and set timers for background speed, obstacle, enemy and power up objects.
         self.obstacle_timer = pygame.USEREVENT + 1
         self.enemy_timer = pygame.USEREVENT + 2
         self.power_up_timer = pygame.USEREVENT + 3
+        self.background_speed_timer = pygame.USEREVENT + 4
         pygame.time.set_timer(self.obstacle_timer, self.assets.config["obstacle_timer"] * 1000)
         pygame.time.set_timer(self.enemy_timer, self.assets.config["enemy_timer"] * 1000)
         pygame.time.set_timer(self.power_up_timer, self.assets.config["power_up_timer"] * 1000)
+        pygame.time.set_timer(self.background_speed_timer, self.assets.config["bg_speed_timer"] * 1000)
 
         # Create sprite group single for player and add player.
         self.player = pygame.sprite.GroupSingle()
@@ -97,8 +99,9 @@ class Game:
         Args:
             startup (bool): Whether the function is executed at startup or not.
         """
-        # Initialize distance for current run.
+        # Initialize distance and background speed for current run.
         self.distance = 0
+        self.scrolling_bg_speed = self.assets.config["scrolling_bg_speed"]
         # Variables for freeze power up.
         self.freeze = False
         self.freeze_time = self.fps * self.assets.config["freeze_time"]
@@ -208,6 +211,9 @@ class Game:
                         power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
                     power_up_choice = random.choice(power_up_list)
                     self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
+                # Check background speed timer and increase scrolling background speed.
+                elif event.type == self.background_speed_timer:
+                    self.scrolling_bg_speed += self.assets.config["bg_speed_increase"]
 
     def update(self):
         """
@@ -327,6 +333,7 @@ class Game:
         pygame.time.set_timer(self.obstacle_timer, self.assets.config["obstacle_timer"] * 1000)
         pygame.time.set_timer(self.enemy_timer, self.assets.config["enemy_timer"] * 1000)
         pygame.time.set_timer(self.power_up_timer, self.assets.config["power_up_timer"] * 1000)
+        pygame.time.set_timer(self.background_speed_timer, self.assets.config["bg_speed_timer"] * 1000)
 
     def restart_game(self):
         """
