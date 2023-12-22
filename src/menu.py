@@ -32,7 +32,7 @@ class Menu:
         self.buttons = []
         self.sliders = []
 
-    def display(self, pos=None):
+    def display(self, pos=False):
         """
         Displays menu on the screen.
         """
@@ -404,7 +404,7 @@ class ShopMenu(Menu):
         return clicked_button
 
 
-class GameOverMenu:
+class GameOverMenu(Menu):
     """
     Represents the game over menu.
     """
@@ -416,39 +416,60 @@ class GameOverMenu:
         Args:
             game (object): Game object.
         """
-        self.assets = Assets()
-        self.game = game
+        super().__init__(game)
 
-    def display(self, screen, distance, highscore):
+        # Load different background image for game over screen.
+        self.image = self.assets.game_over_image
+
+        self.buttons = [
+            Button("main_menu_button", self.game.screen, (self.left[0], self.bottom[1]), "dodgerblue", "main menu",
+                   "dodgerblue", self.assets.font_small),
+            Button("restart_button", self.game.screen, (self.center[0], self.bottom[1]), "green",
+                   "restart", "green",
+                   self.assets.font_small),
+            Button("quit_button", self.game.screen, (self.right[0], self.bottom[1]), "red",
+                   "quit", "red",
+                   self.assets.font_small)
+        ]
+
+    def display(self):
         """
         Displays the menu on the screen.
         """
-        # Fill background with black.
-        screen.fill((0, 0, 0))
+        super().display(True)
 
-        # Draw game over image on screen.
-        screen.blit(self.assets.game_over_image, ((screen.get_width() - self.assets.game_over_image.get_width()) / 2,
-                                                  (screen.get_height() - self.assets.game_over_image.get_height()) / 2))
+        # Travelled distance text.
+        distance = self.assets.font_comicsans_big.render(f"Distance: {self.game.distance}", True, "cyan")
+        distance_rect = distance.get_rect(center=(self.center[0], 50))
+        self.game.screen.blit(distance, distance_rect)
 
-        # Text for travelled score.
-        score_surface = self.assets.font_comicsans_big.render(f"Reached Score: {distance}", True, (0, 0, 255))
-        screen.blit(score_surface, ((screen.get_width() - score_surface.get_width()) / 2, 20))
+        # Highscore text.
+        highscore = self.assets.font_comicsans_big.render(f"Highscore: {self.game.highscore}", True, "cyan")
+        highscore_rect = highscore.get_rect(center=(self.left[0] - 100, 50))
+        self.game.screen.blit(highscore, highscore_rect)
 
-        # Text for highscore.
-        highscore_surface = self.assets.font_comicsans_big.render(f"Highscore: {highscore}", True, (0, 0, 255))
-        screen.blit(highscore_surface, ((screen.get_width() - highscore_surface.get_width()) / 2, 120))
+        # Achieved coins text.
+        coins = self.assets.font_comicsans_big.render(f"Coins: {int(self.game.distance / 100)}", True, "cyan")
+        coins_rect = coins.get_rect(center=(self.right[0] + 100, 50))
+        self.game.screen.blit(coins, coins_rect)
 
-        # Text for coins.
-        coins_surface = self.assets.font_comicsans_big.render(f"Coins received: {int(self.game.distance / 100)}", True,
-                                                              (0, 0, 255))
-        screen.blit(coins_surface, ((screen.get_width() - coins_surface.get_width()) / 2, 220))
-
-        # Text for restarting game.
-        text_surface = self.assets.font_comicsans_big.render("Press space to run!", True, (0, 0, 255))
-        screen.blit(text_surface, ((screen.get_width() - text_surface.get_width()) / 2, 500))
+        # Explanation text for restarting.
+        exp_text = self.assets.font_small.render("Press space or klick restart button to try again", True, "aqua")
+        exp_text_rect = exp_text.get_rect(center=(self.center[0], self.center[1] + 245))
+        self.game.screen.blit(exp_text, exp_text_rect)
 
         # Update display.
         pygame.display.flip()
+
+    def handle_input(self, event):
+        """
+        Handles user input for the menu.
+
+        Returns:
+            str: The action based on the button clicked ('restart', 'main_menu', 'quit').
+        """
+        clicked_button = super().handle_input(event)
+        return clicked_button
 
 
 class PauseMenu(Menu):
@@ -481,9 +502,7 @@ class PauseMenu(Menu):
         """
         Displays the menu on the screen.
         """
-        pos = (self.game.screen.get_width() - self.image_rect.width // 2,
-               self.game.screen.get_height() - self.image_rect.width // 2)
-        super().display(pos)
+        super().display(True)
 
         # Paused text.
         paused = self.assets.font_middle.render("paused", True, "cyan")

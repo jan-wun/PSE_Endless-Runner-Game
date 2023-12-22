@@ -132,7 +132,7 @@ class Game:
             # Update and save data of run and how game over screen when game state is game over.
             elif self.current_state == GameState.GAME_OVER:
                 self.update_and_save_run_data()
-                self.game_over_menu.display(self.screen, self.distance, self.highscore)
+                self.game_over_menu.display()
 
             # Cap the frame rate to defined fps.
             clock.tick(self.fps)
@@ -147,10 +147,11 @@ class Game:
         # Handle quitting game (via ESC key or close button).
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             self.end_game()
-        # Handle game over state for restarting game (via SPACE key).
-        if self.current_state == GameState.GAME_OVER and event.type == pygame.KEYDOWN and \
-                event.key == pygame.K_SPACE:
-            self.restart_game()
+        # Handle game over state, display menu and check which button player clicks (restart, main_menu, quit).
+        if self.current_state == GameState.GAME_OVER:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                self.restart_game()
+            self.handle_button_result(self.game_over_menu.handle_input(event))
         # Handle paused state, display menu and check which button player clicks (resume, main_menu, quit).
         elif self.current_state == GameState.PAUSED:
             self.pause_menu.display()
@@ -345,8 +346,11 @@ class Game:
         Args
             result (str): String representing the name of the clicked button.
         """
-        if result in ("resume_button", "play_button"):
+        if result == "resume_button":
             self.current_state = GameState.PLAYING
+        elif result in ("restart_button", "play_button"):
+            self.current_state = GameState.PLAYING
+            self.restart_game()
         elif result == "settings_button":
             self.current_state = GameState.SETTINGS
         elif result == "shop_button":
