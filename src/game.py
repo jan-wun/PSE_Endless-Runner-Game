@@ -279,6 +279,10 @@ class Game:
         # Draw icons for power ups on the screen.
         self.display_power_ups()
 
+        # Display slide cooldown time on the screen.
+        self.screen.blit(self.assets.font_comicsans_small.render(
+            f"Slide Cooldown: {round(self.player.sprite.slide_cooldown / self.fps, 1)}", True, "cyan"), (self.width - 220, 80))
+
         # Update the full display Surface to the screen.
         pygame.display.flip()
 
@@ -506,20 +510,21 @@ class Game:
                     time_left = u"\u221E"
                 else:
                     image = self.assets.multiple_shots_power_up_inactive
-                height = 100
+                height = 120
             if power_up_type == PowerUpType.FREEZE:
                 if self.freeze:
                     image = self.assets.freeze_powerup
                     time_left = round(self.freeze_time / self.fps, 1)
                 else:
                     image = self.assets.freeze_powerup_inactive
-                height = 170
+                height = 190
             if power_up_type == PowerUpType.INVINCIBILITY:
                 if self.player.sprite.invincible:
                     image = self.assets.invincible_powerup
                     time_left = round(self.player.sprite.invincible_time / self.fps, 1)
                 else:
                     image = self.assets.invincible_powerup_inactive
-                height = 240
+                height = 260
             self.screen.blit(image[0], (self.width - 70, height))
-            self.screen.blit(self.assets.font_comicsans_small.render(str(time_left), True, "cyan"), (self.width - 105, height + 15))
+            self.screen.blit(self.assets.font_comicsans_small.render(str(time_left), True, "cyan"),
+                             (self.width - 105, height + 15))
