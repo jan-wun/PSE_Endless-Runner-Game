@@ -352,19 +352,8 @@ class ShopMenu(Menu):
             game (object): Game object.
         """
         super().__init__(game)
-        self.shop_warning_insufficient_coins = """
-        display dialog "Unfortunately you do not have enough coins to purchase this item!" ¬
-        with title "Shop-Warning" ¬
-        with icon caution ¬
-        buttons "OK"
-        """
-
-        self.shop_warning_already_bought = """
-        display dialog "You already bought this item!" ¬
-        with title "Shop-Warning" ¬
-        with icon caution ¬
-        buttons "OK"
-        """
+        self.shop_warning_insufficient_coins = "Unfortunately you do not have enough coins to purchase this item!"
+        self.shop_warning_already_bought = "You already bought this item!"
 
         self.extra_life_costs = self.assets.config["extra_life_costs"]
         self.weapon_costs = self.assets.config["upgrade_weapon_costs"]
