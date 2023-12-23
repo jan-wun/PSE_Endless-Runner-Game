@@ -307,6 +307,8 @@ class Game:
             self.number_of_runs += 1
             # Update coins.
             self.coins += int(self.distance / 100)
+            # Re-instantiate shop for updated coins.
+            self.shop_menu = ShopMenu(self)
             # Save data of run.
             self.save_load_manager.save_game_data([
                 [self.number_of_runs, self.distance], self.highscore, self.coins],
