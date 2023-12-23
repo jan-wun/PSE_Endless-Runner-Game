@@ -12,6 +12,7 @@ class GameState(Enum):
     PLAYING = "playing"
     PAUSED = "paused"
     GAME_OVER = "game_over"
+    CONTROLS = "controls"
 
 
 class PlayerState(Enum):

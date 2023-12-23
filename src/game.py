@@ -4,7 +4,7 @@ import random
 from tkinter import messagebox
 from src.assets import Assets
 from src.enums import GameState, EnemyType, WeaponType, PowerUpType
-from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
+from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu, ControlsMenu
 from src.manager import SaveLoadSystem
 from src.player import Player
 from src.obstacle import Obstacle
@@ -55,6 +55,7 @@ class Game:
         self.stats_menu = StatsMenu(self)
         self.shop_menu = ShopMenu(self)
         self.settings_menu = SettingsMenu(self)
+        self.controls_menu = ControlsMenu(self)
         self.game_over_menu = GameOverMenu(self)
         self.pause_menu = PauseMenu(self)
         self.pause_button_rect = self.assets.pause_button_image.get_rect(
@@ -171,6 +172,10 @@ class Game:
         elif self.current_state == GameState.SHOP:
             self.shop_menu.display()
             self.handle_button_result(self.shop_menu.handle_input(event))
+        # Handle controls state, display menu and check for player clicks (back button).
+        elif self.current_state == GameState.CONTROLS:
+            self.controls_menu.display()
+            self.handle_button_result(self.controls_menu.handle_input(event))
         # Handle stats state, display menu and check for player clicks (back button).
         elif self.current_state == GameState.STATS:
             self.stats_menu.display()
@@ -385,6 +390,8 @@ class Game:
             self.current_state = GameState.SHOP
         elif result == "stats_button":
             self.current_state = GameState.STATS
+        elif result == "controls_button":
+            self.current_state = GameState.CONTROLS
         elif result == "main_menu_button":
             self.current_state = GameState.MAIN_MENU
             self.player.sprite.reset()

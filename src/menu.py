@@ -127,6 +127,8 @@ class MainMenu(Menu):
                    self.assets.settings_icon_small),
             Button("stats_button", self.game.screen, self.left, "cyan", "stats", "dodgerblue", self.assets.font_middle),
             Button("shop_button", self.game.screen, self.right, "cyan", "shop", "dodgerblue", self.assets.font_middle),
+            Button("controls_button", self.game.screen, [self.center[0], self.center[1] - 180], "cyan", "controls",
+                   "dodgerblue", self.assets.font_middle),
             Button("quit_button", self.game.screen, self.bottom, "blue", None, None, None, self.assets.quit_icon)
         ]
 
@@ -166,7 +168,8 @@ class SettingsMenu(Menu):
 
         self.sliders = [
             Slider("music_slider", self.game.screen,
-                   self.left, (200, 40), round(self.assets.music.get_volume(), 2), 0, 100, self.assets.font_comicsans_middle),
+                   self.left, (200, 40), round(self.assets.music.get_volume(), 2), 0, 100,
+                   self.assets.font_comicsans_middle),
             Slider("volume_slider", self.game.screen,
                    self.right, (200, 40), round(self.assets.sounds['shoot'].get_volume(), 2), 0, 100,
                    self.assets.font_comicsans_middle)
@@ -398,6 +401,62 @@ class ShopMenu(Menu):
         upgrade_weapon_info_rect2 = upgrade_weapon_info_2.get_rect(center=(self.right[0] + 100, self.right[1] + 80))
         self.game.screen.blit(upgrade_weapon_info_1, upgrade_weapon_info_rect1)
         self.game.screen.blit(upgrade_weapon_info_2, upgrade_weapon_info_rect2)
+
+        # Update display.
+        pygame.display.flip()
+
+    def handle_input(self, event):
+        """
+        Handles user input for the menu.
+
+        Returns:
+            str: The action based on the button clicked ('back', 'buy_second_life', 'buy_weapon').
+        """
+        clicked_button = super().handle_input(event)
+        return clicked_button
+
+
+class ControlsMenu(Menu):
+    """
+    Represents the controls menu.
+    """
+
+    def __init__(self, game):
+        """
+        Initializes controls menu.
+
+        Args:
+            game (object): Game object.
+        """
+        super().__init__(game)
+
+        self.buttons = [
+            Button("controls_text", self.game.screen, (self.top[0], self.top[1] + 15), "cyan", "controls", "dodgerblue",
+                   self.assets.font_middle),
+            Button("back_button", self.game.screen, self.bottom, "cyan", "back", "dodgerblue", self.assets.font_middle)
+        ]
+
+    def display(self):
+        """
+        Displays the menu on the screen.
+        """
+        super().display()
+
+        # Info texts for controls.
+        right_movement = self.assets.font_comicsans_middle.render("Move player to the right: Right arrow", True,
+                                                                  "dodgerblue")
+        left_movement = self.assets.font_comicsans_middle.render("Move to the left: Left arrow", True, "dodgerblue")
+        jump_movement = self.assets.font_comicsans_middle.render("Jump: Up arrow", True, "dodgerblue")
+        slide_movement = self.assets.font_comicsans_middle.render("Slide: Hold Left or right arrow, then down arrow",
+                                                                  True, "dodgerblue")
+        fire = self.assets.font_comicsans_middle.render("Fire: Spacebar", True, "dodgerblue")
+        pause = self.assets.font_comicsans_middle.render("Pause: p", True, "dodgerblue")
+
+        # Display texts.
+        for index, info_text in enumerate(
+                [right_movement, left_movement, jump_movement, slide_movement, fire, pause]):
+            self.game.screen.blit(info_text,
+                                  info_text.get_rect(center=(self.center[0], self.top[1] + (90 * (index + 1)))))
 
         # Update display.
         pygame.display.flip()
