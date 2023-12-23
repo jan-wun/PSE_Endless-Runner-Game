@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-import tkmessagebox
+from tkinter import messagebox
 from src.assets import Assets
 from src.enums import GameState, EnemyType, WeaponType, PowerUpType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
@@ -455,7 +455,7 @@ class Game:
         """
         # Display insufficient_coins message when user has not enough coins.
         if self.coins < item_costs:
-            tkmessagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_insufficient_coins)
+            messagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_insufficient_coins)
         else:
             # Process purchase of the clicked item.
             if item_name == "extra_life":
@@ -480,7 +480,7 @@ class Game:
             self.player.sprite.health = 2
         else:
             # Show warning message.
-            tkmessagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
+            messagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
 
     def handle_weapon_upgrade_purchase(self, item_costs, already_bought_script):
         """
@@ -500,7 +500,7 @@ class Game:
                 WeaponType.UPGRADE, self, self.player.sprite)
         else:
             # Show warning message.
-            tkmessagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
+            messagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
 
     def display_power_ups(self):
         """
