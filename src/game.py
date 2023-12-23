@@ -1,7 +1,7 @@
 import pygame
 import sys
 import random
-import subprocess
+import tkmessagebox
 from src.assets import Assets
 from src.enums import GameState, EnemyType, WeaponType, PowerUpType
 from src.menu import GameOverMenu, PauseMenu, SettingsMenu, MainMenu, StatsMenu, ShopMenu
@@ -451,30 +451,25 @@ class Game:
             item_costs (int): The amount of coins an item costs.
             item_name (string): The name of an item.
         """
-        # Scripts for showing warning messages on macOS.
-        insufficient_coins_script = "osascript -e '{}'".format(self.shop_menu.shop_warning_insufficient_coins)
-        already_bought_script = "osascript -e '{}'".format(self.shop_menu.shop_warning_already_bought)
-
         # Display insufficient_coins message when user has not enough coins.
         if self.coins < item_costs:
-            subprocess.call(insufficient_coins_script, shell=True)
+            tkmessagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_insufficient_coins)
         else:
             # Process purchase of the clicked item.
             if item_name == "extra_life":
-                self.handle_extra_life_purchase(item_costs, already_bought_script)
+                self.handle_extra_life_purchase(item_costs)
             else:
-                self.handle_weapon_upgrade_purchase(item_costs, already_bought_script)
+                self.handle_weapon_upgrade_purchase(item_costs)
 
         # Re-instantiate shop for updated coins.
         self.shop_menu = ShopMenu(self)
 
-    def handle_extra_life_purchase(self, item_costs, already_bought_script):
+    def handle_extra_life_purchase(self, item_costs):
         """
         Processes purchases of the extra life item.
 
         Args:
             item_costs (int): The amount of coins the item costs.
-            already_bought_script (str): A string containing the message that the item has already been purchased.
         """
         # Check whether player already bought the extra life item.
         if self.player.sprite.health != 2:
@@ -483,7 +478,7 @@ class Game:
             self.player.sprite.health = 2
         else:
             # Show warning message.
-            subprocess.call(already_bought_script, shell=True)
+            tkmessagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
 
     def handle_weapon_upgrade_purchase(self, item_costs, already_bought_script):
         """
@@ -503,7 +498,7 @@ class Game:
                 WeaponType.UPGRADE, self, self.player.sprite)
         else:
             # Show warning message.
-            subprocess.call(already_bought_script, shell=True)
+            tkmessagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
 
     def display_power_ups(self):
         """
