@@ -166,9 +166,9 @@ class SettingsMenu(Menu):
 
         self.sliders = [
             Slider("music_slider", self.game.screen,
-                   self.left, (200, 40), self.assets.music.get_volume(), 0, 100, self.assets.font_comicsans_middle),
+                   self.left, (200, 40), round(self.assets.music.get_volume(), 2), 0, 100, self.assets.font_comicsans_middle),
             Slider("volume_slider", self.game.screen,
-                   self.right, (200, 40), self.assets.sounds['shoot'].get_volume(), 0, 100,
+                   self.right, (200, 40), round(self.assets.sounds['shoot'].get_volume(), 2), 0, 100,
                    self.assets.font_comicsans_middle)
         ]
         self.buttons = [
