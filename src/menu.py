@@ -443,7 +443,7 @@ class ControlsMenu(Menu):
         super().display()
 
         # Info texts for controls.
-        right_movement = self.assets.font_comicsans_middle.render("Move player to the right: Right arrow", True,
+        right_movement = self.assets.font_comicsans_middle.render("Move to the right: Right arrow", True,
                                                                   "dodgerblue")
         left_movement = self.assets.font_comicsans_middle.render("Move to the left: Left arrow", True, "dodgerblue")
         jump_movement = self.assets.font_comicsans_middle.render("Jump: Up arrow", True, "dodgerblue")
