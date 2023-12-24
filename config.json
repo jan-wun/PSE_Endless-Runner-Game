@@ -16,7 +16,7 @@
   "initial_player_health": 1,
   "invincible_time": 5,
   "player_speed": 5,
-  "player_jump_height": 21,
+  "player_jump_height": 20,
   "player_slide_height": 600,
   "player_slide_speed_reduction": 0.1,
   "player_slide_end_position": 80,
