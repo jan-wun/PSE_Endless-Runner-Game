@@ -489,7 +489,7 @@ class Game:
             # Show warning message.
             messagebox.showinfo(title="Shop-Warning", message=self.shop_menu.shop_warning_already_bought)
 
-    def handle_weapon_upgrade_purchase(self, item_costs, already_bought_script):
+    def handle_weapon_upgrade_purchase(self, item_costs):
         """
         Processes purchases of the weapon upgrade item.
 
