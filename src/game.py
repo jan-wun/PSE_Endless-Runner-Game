@@ -404,6 +404,45 @@ class Game:
         elif result == "quit_button":
             self.end_game()
 
+    def pixel_collision(self, sprite1, sprite2):
+        """
+        Perform pixel-perfect collision detection between two sprites.
+
+        Args:
+            sprite1 (pygame.sprite.Sprite): The first sprite to check for collision.
+            sprite2 (pygame.sprite.Sprite): The second sprite to check for collision.
+
+        Returns:
+            bool: True if the sprites have overlapping non-transparent pixels, False otherwise.
+        """
+        rect1 = sprite1.rect
+        rect2 = sprite2.rect
+
+        # Get the overlapping area (intersection) between the two sprites.
+        overlap_rect = rect1.clip(rect2)
+
+        # If there is no collision (width or height of overlapping area is zero), return False.
+        if overlap_rect.width == 0 or overlap_rect.height == 0:
+            return False
+
+        # Get the coordinates of the overlapping area in both sprites.
+        x1, y1 = overlap_rect.x - rect1.x, overlap_rect.y - rect1.y
+        x2, y2 = overlap_rect.x - rect2.x, overlap_rect.y - rect2.y
+
+        # Create pixel arrays for the surfaces of the sprites.
+        pixels1 = pygame.PixelArray(sprite1.image)
+        pixels2 = pygame.PixelArray(sprite2.image)
+
+        # Check if there is any overlapping pixel that is non-transparent.
+        for y in range(overlap_rect.height):
+            for x in range(overlap_rect.width):
+                # If such a pixel is found, return True.
+                if pixels1[x1 + x, y1 + y] != 0 and pixels2[x2 + x, y2 + y] != 0:
+                    return True
+
+        # If no overlapping non-transparent pixel was found, return False.
+        return False
+
     def check_collision(self, sprite, sprite_group):
         """
         Checks for collision between a single sprite and a sprite group.
@@ -413,7 +452,7 @@ class Game:
             sprite_group (pygame.sprite.Group): The sprite group used to check for collisions.
         """
         # Check whether sprite collides with any sprite in sprite group.
-        hit_sprite = pygame.sprite.spritecollideany(sprite, sprite_group)
+        hit_sprite = pygame.sprite.spritecollideany(sprite, sprite_group, collided=self.pixel_collision)
         if hit_sprite:
             # Check whether the sprite is an enemy.
             if isinstance(sprite, Enemy):
