@@ -283,6 +283,55 @@ class Game:
         self.power_ups.draw(self.screen)
         self.projectiles.draw(self.screen)
 
+        # # Draw debug rectangles around entities
+        # for entity in self.obstacles.sprites():
+        #     pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
+        #
+        # for entity in self.enemies.sprites():
+        #     pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
+        #
+        # for entity in self.power_ups.sprites():
+        #     pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
+        #
+        # for entity in self.projectiles.sprites():
+        #     pygame.draw.rect(self.screen, (255, 0, 0), entity.rect, 2)
+        #
+        # # Falls du den Spieler auch umranden willst:
+        # pygame.draw.rect(self.screen, (255, 0, 0), self.player.sprite.rect, 2)
+        # #
+        # def draw_pixel_perfect_outline(screen, sprite, color=(255, 0, 0)):
+        #     """
+        #     Zeichnet eine pixelgenaue Umrandung um den sichtbaren Bereich eines Sprites.
+        #
+        #     :param screen: Pygame-Oberfläche, auf der gezeichnet wird.
+        #     :param sprite: Das Sprite-Objekt mit einer 'image' und 'rect'.
+        #     :param color: Farbe der Umrandung (Standard: Rot).
+        #     """
+        #     mask = pygame.mask.from_surface(sprite.image)  # Maske aus dem Bild erstellen
+        #     outline = mask.outline()  # Pixelgenaue Umrandung holen
+        #
+        #     # Umriss an die aktuelle Position des Sprites anpassen
+        #     outline = [(point[0] + sprite.rect.left, point[1] + sprite.rect.top) for point in outline]
+        #
+        #     if outline:  # Falls eine Umrandung vorhanden ist
+        #         pygame.draw.polygon(screen, color, outline, 2)  # Umrandung zeichnen
+        #
+        # # Beispiel: Umrandung für alle Gruppen-Sprites
+        # for entity in self.obstacles.sprites():
+        #     draw_pixel_perfect_outline(self.screen, entity)
+        #
+        # for entity in self.enemies.sprites():
+        #     draw_pixel_perfect_outline(self.screen, entity)
+        #
+        # for entity in self.power_ups.sprites():
+        #     draw_pixel_perfect_outline(self.screen, entity)
+        #
+        # for entity in self.projectiles.sprites():
+        #     draw_pixel_perfect_outline(self.screen, entity)
+        #
+        # # Falls du den Spieler auch umranden willst:
+        # draw_pixel_perfect_outline(self.screen, self.player.sprite)
+
         # Display number of player lifes.
         self.screen.blit(self.assets.font_comicsans_big.render(f"Lifes: {self.player.sprite.health}", True, "cyan"),
                          (10, 60))
