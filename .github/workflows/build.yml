@@ -25,3 +25,4 @@ jobs:
             -Dsonar.organization=jan-wun
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.scanner.forceFullAnalysis=true
