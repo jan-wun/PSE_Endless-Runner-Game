@@ -158,3 +158,4 @@ if os.path.exists(SRC_PATH):
 
 else:
     print(f"Source path '{SRC_PATH}' not found!")
+    exit(1)
