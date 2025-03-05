@@ -115,6 +115,15 @@ def calculate_mi(file_path):
 
 
 # ----------------------------------------
+# 6️⃣ Halstead Volume (HV)
+# ----------------------------------------
+def calculate_hv(file_path):
+    """Calculates Halstead Volume (HV)."""
+    hv_data = run_radon_analysis("hal", file_path)
+    return round(hv_data[file_path]["total"]["volume"], 2)
+
+
+# ----------------------------------------
 # Full Code Analysis
 # ----------------------------------------
 def analyze_code_metrics(file_path):
@@ -130,7 +139,8 @@ def analyze_code_metrics(file_path):
         "CBO": calculate_cbo(class_dependencies),
         "LCOM": calculate_lcom(tree),
         "DIT": calculate_dit(tree),
-        "MI": calculate_mi(file_path)
+        "MI": calculate_mi(file_path),
+        "HV": calculate_hv(file_path)
     }
 
 
