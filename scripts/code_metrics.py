@@ -44,15 +44,9 @@ def extract_class_info(tree):
 # ----------------------------------------
 # 1️⃣ WMC (Weighted Methods per Class)
 # ----------------------------------------
-def calculate_cc(file_path):
-    """Calculates Cyclomatic Complexity (CC) for each method."""
-    cc_data = run_radon_analysis("cc", file_path)
-    return {m['name']: m['complexity'] for methods in cc_data.values() for m in methods}
-
-def calculate_wmc(class_methods, file_path):
+def calculate_wmc(class_methods):
     """Calculates Weighted Methods per Class (WMC)."""
-    method_cc = calculate_cc(file_path)  # Get CC per method
-    return sum(sum(method_cc.get(m, 1) for m in methods) for methods in class_methods.values())
+    return sum(len(methods) for methods in class_methods.values())
 
 
 # ----------------------------------------
@@ -135,7 +129,7 @@ def analyze_code_metrics(file_path):
     class_methods, class_dependencies, _, _ = extract_class_info(tree)
 
     return {
-        "WMC": calculate_wmc(class_methods, file_path),
+        "WMC": calculate_wmc(class_methods),
         "CBO": calculate_cbo(class_dependencies),
         "LCOM": calculate_lcom(tree),
         "DIT": calculate_dit(tree),
