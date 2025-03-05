@@ -12,7 +12,7 @@ on:
 jobs:
   test:
     name: Run Pytest on macOS
-    runs-on: macos-latest  # ✅
+    runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

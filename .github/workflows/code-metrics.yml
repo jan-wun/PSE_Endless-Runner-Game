@@ -32,7 +32,7 @@ jobs:
         run: python scripts/code_metrics.py
 
       - name: Upload Metrics Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: code-metrics-report
           path: metrics_report.json
