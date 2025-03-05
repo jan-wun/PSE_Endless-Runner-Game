@@ -137,8 +137,7 @@ def analyze_code_metrics(file_path):
 # ----------------------------------------
 # Run Code Analysis for all files in src/
 # ----------------------------------------
-SRC_PATH = "PSE_Endless-Runner-Game/src"
-
+SRC_PATH = "src"
 if os.path.exists(SRC_PATH):
     file_path_list = [os.path.join(SRC_PATH, file_name) for file_name in os.listdir(SRC_PATH) if
                       file_name.endswith(".py")]
