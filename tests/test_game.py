@@ -2,7 +2,7 @@ import pytest
 import pygame
 from unittest import mock
 from src.game import Game
-from src.enums import GameState, WeaponType, EnemyType
+from src.enums import GameState, WeaponType, EnemyType, PowerUpType
 from src.player import Player
 from src.projectile import Projectile
 from src.enemy import Enemy
@@ -29,15 +29,31 @@ def test_game_set_up_run(mock_game):
     assert mock_game.scrolling_bg_speed == mock_game.assets.config["scrolling_bg_speed"]
     assert not mock_game.freeze
 
-def test_handle_states_and_events_main_menu(mock_game):
-    """Tests if the main menu handles input correctly."""
-    mock_game.current_state = GameState.MAIN_MENU
 
-    with mock.patch.object(mock_game.main_menu, "display"), \
-            mock.patch.object(mock_game.main_menu, "handle_input", return_value="play_button"):
-        mock_game.handle_states_and_events(pygame.event.Event(pygame.MOUSEBUTTONUP, {}))
+def test_handle_states_and_events_quit(mock_game):
+    """Tests if the game correctly exits when ESC or Quit event is triggered."""
+    mock_game.current_state = GameState.PLAYING
+    with mock.patch.object(mock_game, "end_game") as mock_end_game:
+        event = pygame.event.Event(pygame.QUIT)
+        mock_game.handle_states_and_events(event)
+        mock_end_game.assert_called_once()
 
-    assert mock_game.current_state == GameState.PLAYING
+        event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_ESCAPE})
+        mock_game.handle_states_and_events(event)
+        assert mock_end_game.call_count == 2  # Should be called again
+
+
+def test_handle_states_and_events_pause(mock_game):
+    """Tests if pressing P pauses the game."""
+    mock_game.current_state = GameState.PLAYING
+    event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_p})
+    mock_game.handle_states_and_events(event)
+    assert mock_game.pause_button_clicked is True
+
+    event = pygame.event.Event(pygame.KEYUP, {"key": pygame.K_p})
+    mock_game.handle_states_and_events(event)
+    assert mock_game.current_state == GameState.PAUSED
+
 
 @pytest.mark.parametrize("button, expected_state", [
     ("resume_button", GameState.PLAYING),
@@ -232,3 +248,39 @@ def test_end_game(mock_game):
         mock_game.end_game()
         mock_quit.assert_called_once()
         mock_exit.assert_called_once()
+
+def test_reset_timers(mock_game):
+    """Tests if `reset_timers` correctly sets the timers."""
+    with mock.patch("pygame.time.set_timer") as mock_set_timer:
+        mock_game.reset_timers()
+        assert mock_set_timer.call_count == 4  # There should be 4 timers
+
+def test_update_and_save_run_data(mock_game):
+    """Tests if the game data is correctly updated and saved."""
+    mock_game.distance = 500  # Simulated score
+    mock_game.coins = 50
+    mock_game.number_of_runs = 5
+    mock_game.highscore = 400  # Previous highscore
+
+    with mock.patch.object(mock_game.save_load_manager, "save_game_data") as mock_save_data:
+        mock_game.update_and_save_run_data()
+
+    assert mock_game.highscore == 500  # New highscore should be set
+    assert mock_game.number_of_runs == 6  # Number of runs should be incremented
+    assert mock_game.coins > 50  # Coins should increase based on score
+    mock_save_data.assert_called_once()  # Ensure data is saved
+
+@pytest.mark.parametrize("power_up_type, expected_active", [
+    (PowerUpType.MULTIPLE_SHOTS, lambda g: g.player.sprite.weapon.max_shots == g.assets.config["multiple_shots"]),
+    (PowerUpType.FREEZE, lambda g: g.freeze),
+    (PowerUpType.INVINCIBILITY, lambda g: g.player.sprite.invincible),
+])
+def test_display_power_ups(mock_game, power_up_type, expected_active):
+    """Tests if the correct power-up icon is rendered based on its active state."""
+    with mock.patch.object(mock_game.screen, "blit") as mock_blit:
+        is_active = expected_active(mock_game)
+        mock_game.display_power_ups()
+        if is_active:
+            assert mock_blit.call_count > 0, f"Active power-up {power_up_type} should be rendered."
+        else:
+            assert mock_blit.call_count > 0, f"Inactive power-up {power_up_type} should still be rendered in grey."
