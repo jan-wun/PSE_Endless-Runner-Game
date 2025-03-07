@@ -45,14 +45,16 @@ def test_handle_states_and_events_quit(mock_game):
 
 def test_handle_states_and_events_pause(mock_game):
     """Tests if pressing P pauses the game."""
-    mock_game.current_state = GameState.PLAYING
-    event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_p})
-    mock_game.handle_states_and_events(event)
-    assert mock_game.pause_button_clicked is True
+    with (mock.patch.object(mock_game.pause_menu, "display"),
+          mock.patch.object(mock_game.pause_menu, "handle_input")):
+        mock_game.current_state = GameState.PLAYING
+        event = pygame.event.Event(pygame.KEYDOWN, {"key": pygame.K_p})
+        mock_game.handle_states_and_events(event)
+        assert mock_game.pause_button_clicked is True
 
-    event = pygame.event.Event(pygame.KEYUP, {"key": pygame.K_p})
-    mock_game.handle_states_and_events(event)
-    assert mock_game.current_state == GameState.PAUSED
+        event = pygame.event.Event(pygame.KEYUP, {"key": pygame.K_p})
+        mock_game.handle_states_and_events(event)
+        assert mock_game.current_state == GameState.PAUSED
 
 
 @pytest.mark.parametrize("button, expected_state", [
