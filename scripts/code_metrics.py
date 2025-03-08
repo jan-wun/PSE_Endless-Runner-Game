@@ -20,73 +20,90 @@ def run_radon_analysis(command, file_path):
     result = subprocess.run(["radon", command, file_path, "-j"], capture_output=True, text=True)
     return json.loads(re.sub(ansi, '', result.stdout.strip()))
 
+
 def extract_class_info(tree):
     """
-    Extracts class, method, dependency, and inheritance information in a single AST traversal.
-
+    Extracts class, method, and inheritance information.
     Returns:
         - class_methods: Dictionary mapping class names to their methods.
-        - class_dependencies: List of unique class dependencies at the file level.
-        - defined_classes: Set of class names defined in the file.
-        - imported_classes: Set of class names imported into the file.
         - class_hierarchy: Dictionary mapping class names to their base classes.
     """
-    class_methods = defaultdict(list)  # Methods per class
-    class_dependencies = set()  # Dependencies per file
-    defined_classes = set()  # Defined class names
-    imported_classes = set()  # Imported class names
+    class_methods = {}  # Methods per class
     class_hierarchy = {}  # Inheritance
+
+    # Collect class definitions and methods
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            class_name = node.name
+            methods = [m.name for m in node.body if isinstance(m, ast.FunctionDef)]
+            bases = [base.id for base in node.bases if isinstance(base, ast.Name)]
+
+            class_methods[class_name] = methods
+            class_hierarchy[class_name] = bases
+
+    return class_methods, class_hierarchy
+
+
+def extract_class_dependencies(tree, class_methods, class_hierarchy):
+    """
+    Extracts class dependencies for each class in the AST.
+    Returns:
+        - class_dependencies: Dictionary mapping each class to its unique dependencies.
+    """
+    class_dependencies = defaultdict(set)
+    defined_classes = set(class_methods.keys())  # Defined class names
+    imported_classes = set()  # Imported class names
     special_dependencies = {"game": "Game", "player": "Player"}  # Mapping for special dependencies
 
-    # Iterate through all nodes in AST
+    # Identify imported classes
     for node in ast.walk(tree):
-
-        # Class Definition: Track class name, methods and inheritance
-        if isinstance(node, ast.ClassDef):
-            defined_classes.add(node.name)
-            class_methods[node.name] = [m.name for m in node.body if isinstance(m, ast.FunctionDef)]
-            class_hierarchy[node.name] = [base.id for base in node.bases if isinstance(base, ast.Name)]
-
-        # Import Statement: Store imported class names
-        elif isinstance(node, ast.ImportFrom) and node.module:
+        if isinstance(node, ast.ImportFrom) and node.module:
             imported_classes.update(alias.name for alias in node.names)
 
-        # Method Calls: Capture function and method calls affecting dependencies
-        elif isinstance(node, ast.Call):
-            # Direct function call: `func_name()`
-            if isinstance(node.func, ast.Name):
-                called_class = node.func.id
-            # Method call on object: `obj.method()`
-            elif isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name):
-                called_class = node.func.value.id
-            else:
-                continue
+    # Identify dependencies for each class
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            current_class = node.name  # Track the class being analyzed
 
-            # Register dependency (only if it refers to a class)
-            if called_class in defined_classes or called_class in imported_classes:
-                class_dependencies.add(called_class)
+            if current_class in class_hierarchy:
+                class_dependencies[current_class].update(class_hierarchy[current_class])
 
-        # Capture attribute access that references other classes
-        elif isinstance(node, ast.Attribute):
-            # Direct attribute access (self.game or self.player)
-            if isinstance(node.value, ast.Name) and node.value.id == "self":
-                accessed_var = node.attr  # Extracts "game" or "player"
-                if accessed_var in special_dependencies:
-                    class_dependencies.add(special_dependencies[accessed_var])  # Maps to "Game" or "Player"
+            for sub_node in ast.walk(node):  # Only analyze this class' subtree
+                # Detect function and method calls affecting dependencies
+                if isinstance(sub_node, ast.Call):
+                    called_class = None
+                    if isinstance(sub_node.func, ast.Name):  # Direct function call
+                        called_class = sub_node.func.id
+                    elif isinstance(sub_node.func, ast.Attribute) and isinstance(sub_node.func.value, ast.Name):
+                        called_class = sub_node.func.value.id
 
-            # Handle nested attribute access (self.game.player → "Player")
-            elif isinstance(node.value, ast.Attribute) and isinstance(node.value.value,
-                                                                      ast.Name) and node.value.value.id == "self":
-                root_var = node.value.attr  # Extracts "game"
-                final_attr = node.attr  # Extracts "player"
-                if root_var in special_dependencies and final_attr == "player":
-                    class_dependencies.add("Player")  # Recognizes "self.game.player" as "Player"
+                    if called_class and (called_class in defined_classes or called_class in imported_classes):
+                        class_dependencies[current_class].add(called_class)
 
-            # General case: If the accessed attribute belongs to a defined/imported class, register it as a dependency
-            elif isinstance(node.value, ast.Name) and node.value.id in defined_classes | imported_classes:
-                class_dependencies.add(node.value.id)
+                # Detect attribute access that references other classes
+                elif isinstance(sub_node, ast.Attribute):
+                    if isinstance(sub_node.value, ast.Name) and sub_node.value.id == "self":
+                        accessed_var = sub_node.attr
+                        if accessed_var in special_dependencies:
+                            class_dependencies[current_class].add(special_dependencies[accessed_var])
 
-    return class_methods, list(class_dependencies), class_hierarchy
+                    elif (isinstance(sub_node.value, ast.Attribute) and
+                          isinstance(sub_node.value.value, ast.Name) and
+                          sub_node.value.value.id == "self"):
+                        root_var = sub_node.value.attr
+                        final_attr = sub_node.attr
+                        if root_var in special_dependencies and final_attr == "player":
+                            class_dependencies[current_class].add("Player")
+
+                    elif isinstance(sub_node.value,
+                                    ast.Name) and sub_node.value.id in defined_classes | imported_classes:
+                        class_dependencies[current_class].add(sub_node.value.id)
+
+    for class_name in defined_classes:
+        if class_name not in class_dependencies:
+            class_dependencies[class_name] = set()
+
+    return class_dependencies
 
 
 # ----------------------------------------
@@ -105,8 +122,12 @@ def calculate_wmc(class_methods):
 # 2️⃣ CBO (Coupling Between Objects)
 # ----------------------------------------
 def calculate_cbo(class_dependencies):
-    """Calculates Coupling Between Objects (CBO)."""
-    return len(class_dependencies)
+    """Calculates the average Coupling Between Objects (CBO) for a file."""
+    if not class_dependencies:
+        return 0
+    cbo_values = [len(dep) for dep in class_dependencies.values()]
+    avg_cbo = sum(cbo_values) / len(cbo_values)
+    return round(avg_cbo, 2)
 
 
 # ----------------------------------------
@@ -178,7 +199,8 @@ def analyze_code_metrics(file_path):
         return {"error": "File not found"}
 
     tree = parse_python_file(file_path)
-    class_methods, class_dependencies, class_hierarchy = extract_class_info(tree)
+    class_methods, class_hierarchy = extract_class_info(tree)
+    class_dependencies = extract_class_dependencies(tree, class_methods, class_hierarchy)
 
     return {
         "WMC": calculate_wmc(class_methods),
