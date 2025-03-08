@@ -139,13 +139,16 @@ def calculate_lcom(tree):
 # 4️⃣ DIT (Depth of Inheritance Tree)
 # ----------------------------------------
 def calculate_dit(class_hierarchy):
-    """Calculates Depth of Inheritance Tree (DIT)."""
+    """Calculates the average Depth of Inheritance Tree (DIT) for a file."""
     def find_depth(cls, depth=0):
         if cls not in class_hierarchy or not class_hierarchy[cls]:
             return depth
         return max(find_depth(base, depth + 1) for base in class_hierarchy[cls])
 
-    return max((find_depth(cls) for cls in class_hierarchy), default=0)
+    dit_values = [find_depth(cls) for cls in class_hierarchy]
+    avg_dit = sum(dit_values) / len(dit_values)
+
+    return round(avg_dit, 2)
 
 
 # ----------------------------------------
