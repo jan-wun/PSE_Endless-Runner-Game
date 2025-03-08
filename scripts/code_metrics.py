@@ -93,8 +93,12 @@ def extract_class_info(tree):
 # 1️⃣ WMC (Weighted Methods per Class)
 # ----------------------------------------
 def calculate_wmc(class_methods):
-    """Calculates Weighted Methods per Class (WMC)."""
-    return sum(len(methods) for methods in class_methods.values())
+    """
+    Calculates the average Weighted Methods per Class (WMC) for a file.
+    """
+    wmc_values = [len(methods) for methods in class_methods.values()]
+    avg_wmc = sum(wmc_values) / len(wmc_values)
+    return round(avg_wmc, 2)
 
 
 # ----------------------------------------
