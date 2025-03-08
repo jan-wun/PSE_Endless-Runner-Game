@@ -20,7 +20,6 @@ def run_radon_analysis(command, file_path):
     result = subprocess.run(["radon", command, file_path, "-j"], capture_output=True, text=True)
     return json.loads(re.sub(ansi, '', result.stdout.strip()))
 
-
 def extract_class_info(tree):
     """
     Extracts class, method, and inheritance information.
@@ -43,6 +42,47 @@ def extract_class_info(tree):
 
     return class_methods, class_hierarchy
 
+def extract_class_method_attributes(tree, class_methods):
+    """Extracts instance variables and method calls within a class,
+    including inherited attributes from parent classes."""
+    class_method_attributes = defaultdict(list)  # Store attributes accessed per method
+
+    # Iterate through the AST (Abstract Syntax Tree)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):  # Check if the node represents a class
+            class_name = node.name
+            # Store all methods of the class for easy lookup
+            method_bodies = {m.name: m for m in node.body if isinstance(m, ast.FunctionDef)}
+
+            # Iterate over class body elements (methods, attributes, etc.)
+            for item in node.body:
+                if isinstance(item, ast.FunctionDef):  # Check if item is a method
+                    accessed_attributes = set()
+
+                    # Walk through the method's AST to find attribute accesses
+                    for stmt in ast.walk(item):
+                        if (isinstance(stmt, ast.Attribute) and
+                                isinstance(stmt.value, ast.Name) and
+                                stmt.value.id == "self"):  # Ensure it's an instance variable
+
+                            if stmt.attr in class_methods[class_name]:  # If calling another method
+                                method_node = method_bodies.get(stmt.attr)
+                                if method_node:
+                                    # Extract instance variables from the referenced method
+                                    for method_stmt in ast.walk(method_node):
+                                        if (isinstance(method_stmt, ast.Attribute) and
+                                                isinstance(method_stmt.value, ast.Name) and
+                                                method_stmt.value.id == "self" and
+                                                method_stmt.attr not in class_methods[class_name]):
+                                            accessed_attributes.add(method_stmt.attr)
+                            else:
+                                # Direct instance variable access (self.attribute)
+                                accessed_attributes.add(stmt.attr)
+
+                    # Store the accessed attributes per method
+                    class_method_attributes[class_name].append(accessed_attributes)
+
+    return class_method_attributes
 
 def extract_class_dependencies(tree, class_methods, class_hierarchy):
     """
@@ -133,27 +173,23 @@ def calculate_cbo(class_dependencies):
 # ----------------------------------------
 # 3️⃣ LCOM (Lack of Cohesion in Methods)
 # ----------------------------------------
-def calculate_lcom(tree):
-    """Calculates Lack of Cohesion in Methods (LCOM)."""
-    method_attributes = []
+def calculate_lcom(class_method_attributes):
+    """Calculates Lack of Cohesion in Methods (LCOM) using Chidamber & Kemerer's (1994) formula."""
+    lcom_values = []
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            for item in node.body:
-                if isinstance(item, ast.FunctionDef):
-                    accessed_attributes = {stmt.attr for stmt in ast.walk(item)
-                                           if isinstance(stmt, ast.Attribute) and isinstance(stmt.value, ast.Name) and stmt.value.id == "self"}
-                    method_attributes.append(accessed_attributes)
+    for class_name, methods in class_method_attributes.items():
+        num_methods = len(methods)
+        if num_methods < 2:
+            lcom_values.append(0)
+            continue
 
-    num_methods = len(method_attributes)
-    if num_methods < 2:
-        return 0  # LCOM is 0 if fewer than 2 methods exist
+        p = sum(1 for i in range(num_methods) for j in range(i + 1, num_methods)
+                if methods[i].isdisjoint(methods[j]))
+        q = sum(1 for i in range(num_methods) for j in range(i + 1, num_methods)
+                if not methods[i].isdisjoint(methods[j]))
+        lcom_values.append(max(p - q, 0))
 
-    non_cohesive_pairs = sum(1 for i in range(num_methods) for j in range(i + 1, num_methods)
-                             if method_attributes[i].isdisjoint(method_attributes[j]))
-    total_pairs = num_methods * (num_methods - 1) / 2
-
-    return round(non_cohesive_pairs / total_pairs if total_pairs > 0 else 0, 2)
+    return round(sum(lcom_values) / len(lcom_values), 2) if lcom_values else 0
 
 
 # ----------------------------------------
@@ -201,11 +237,12 @@ def analyze_code_metrics(file_path):
     tree = parse_python_file(file_path)
     class_methods, class_hierarchy = extract_class_info(tree)
     class_dependencies = extract_class_dependencies(tree, class_methods, class_hierarchy)
+    class_method_attributes = extract_class_method_attributes(tree, class_methods)
 
     return {
         "WMC": calculate_wmc(class_methods),
         "CBO": calculate_cbo(class_dependencies),
-        "LCOM": calculate_lcom(tree),
+        "LCOM": calculate_lcom(class_method_attributes),
         "DIT": calculate_dit(class_hierarchy),
         "MI": calculate_mi(file_path),
         "HV": calculate_hv(file_path)
