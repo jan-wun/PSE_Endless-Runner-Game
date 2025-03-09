@@ -144,81 +144,110 @@ class Game:
     def handle_states_and_events(self, event):
         """
         Processes game states and various events such as exiting the game or pressing a mouse/keyboard button.
-
-        Args:
-            event (pygame.event.Event): An event that has occurred.
         """
-        # Handle quitting game (via ESC key or close button).
-        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+        event_dispatcher = {
+            pygame.QUIT: self.end_game,
+            pygame.KEYDOWN: self.handle_keydown,
+            pygame.MOUSEBUTTONDOWN: self.handle_mouse_button_down,
+            pygame.MOUSEBUTTONUP: self.handle_mouse_button_up
+        }
+
+        handler = event_dispatcher.get(event.type, None)
+        if handler:
+            handler(event)
+
+        # Zustands-Handling nach Event-Verarbeitung
+        state_handlers = {
+            GameState.GAME_OVER: self.handle_game_over,
+            GameState.PAUSED: self.handle_paused,
+            GameState.MAIN_MENU: self.handle_main_menu,
+            GameState.SETTINGS: self.handle_settings,
+            GameState.SHOP: self.handle_shop,
+            GameState.CONTROLS: self.handle_controls,
+            GameState.STATS: self.handle_stats,
+            GameState.PLAYING: self.handle_playing
+        }
+
+        state_handler = state_handlers.get(self.current_state, None)
+        if state_handler:
+            state_handler(event)
+
+    def handle_keydown(self, event):
+        if event.key == pygame.K_ESCAPE:
             self.end_game()
-        # Handle game over state, display menu and check which button player clicks (restart, main_menu, quit).
-        if self.current_state == GameState.GAME_OVER:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                self.restart_game()
-            self.handle_button_result(self.game_over_menu.handle_input(event))
-        # Handle paused state, display menu and check which button player clicks (resume, main_menu, quit).
-        elif self.current_state == GameState.PAUSED:
-            self.pause_menu.display()
-            self.handle_button_result(self.pause_menu.handle_input(event))
-        # Handle main menu state, display menu and check which button player clicks (play, settings, quit, shop, stats).
-        elif self.current_state == GameState.MAIN_MENU:
-            self.main_menu.display()
-            self.handle_button_result(self.main_menu.handle_input(event))
-        # Handle settings state, display menu and check whether player changes settings.
-        elif self.current_state == GameState.SETTINGS:
-            self.settings_menu.display()
-            self.handle_button_result(self.settings_menu.handle_input(event))
-        # Handle shop state, display menu and check whether player buys something.
-        elif self.current_state == GameState.SHOP:
-            self.shop_menu.display()
-            self.handle_button_result(self.shop_menu.handle_input(event))
-        # Handle controls state, display menu and check for player clicks (back button).
-        elif self.current_state == GameState.CONTROLS:
-            self.controls_menu.display()
-            self.handle_button_result(self.controls_menu.handle_input(event))
-        # Handle stats state, display menu and check for player clicks (back button).
-        elif self.current_state == GameState.STATS:
-            self.stats_menu.display()
-            self.handle_button_result(self.stats_menu.handle_input(event))
-        # Handle playing state.
-        elif self.current_state == GameState.PLAYING:
-            # Check whether pause button or key (p) is clicked and pause game accordingly.
-            mouse_x, mouse_y = pygame.mouse.get_pos()
-            if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and
-                self.pause_button_rect.collidepoint(mouse_x, mouse_y)) or event.type == pygame.KEYDOWN and \
-                    event.key == pygame.K_p:
-                self.pause_button_clicked = True
-            elif (event.type == pygame.KEYUP and event.key == pygame.K_p) or (
-                    (event.type == pygame.MOUSEBUTTONUP and event.button == 1 and
-                     self.pause_button_rect.collidepoint(mouse_x, mouse_y)) and self.pause_button_clicked):
-                self.pause_button_clicked = False
-                self.current_state = GameState.PAUSED
-            # Only add obstacles and enemies when game is not frozen.
-            if not self.freeze:
-                # Check obstacle timer and add car or meteor to obstacles.
-                if event.type == self.obstacle_timer:
-                    self.obstacles.add(random.choice([Obstacle([self.width + random.randint(200, 500), 480],
-                                                               [pygame.transform.flip(image, True, False) for image
-                                                                in self.assets.car_images], 'car', 5, self),
-                                                      Obstacle([self.width + random.randint(200, 500), 585],
-                                                               self.assets.meteor_images, 'meteor', 0, self)]))
-                # Check enemy timer and add drone or robot to enemies.
-                elif event.type == self.enemy_timer:
-                    enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
-                    if not any(enemy.type == enemy_choice for enemy in self.enemies):
-                        enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
-                        self.enemies.add(Enemy(enemy_position, enemy_choice, self))
-                # Check powerup timer and add a random powerup object to powerups.
-                elif event.type == self.power_up_timer:
-                    # Multiple_shots are only added to the random selection if the player has not collected them yet.
-                    power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE]
-                    if not self.player.sprite.weapon.max_shots == self.assets.config["multiple_shots"]:
-                        power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
-                    power_up_choice = random.choice(power_up_list)
-                    self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
-                # Check background speed timer and increase scrolling background speed.
-                elif event.type == self.background_speed_timer:
-                    self.scrolling_bg_speed += self.assets.config["bg_speed_increase"]
+        elif event.key == pygame.K_SPACE and self.current_state == GameState.GAME_OVER:
+            self.restart_game()
+        elif event.key == pygame.K_p and self.current_state == GameState.PLAYING:
+            self.pause_button_clicked = True
+
+    def handle_mouse_button_down(self, event):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if event.button == 1 and self.pause_button_rect.collidepoint(mouse_x, mouse_y):
+            self.pause_button_clicked = True
+
+    def handle_mouse_button_up(self, event):
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        if event.button == 1 and self.pause_button_rect.collidepoint(mouse_x, mouse_y) and self.pause_button_clicked:
+            self.pause_button_clicked = False
+            self.current_state = GameState.PAUSED
+
+    def handle_game_over(self, event):
+        self.handle_button_result(self.game_over_menu.handle_input(event))
+
+    def handle_paused(self, event):
+        self.pause_menu.display()
+        self.handle_button_result(self.pause_menu.handle_input(event))
+
+    def handle_main_menu(self, event):
+        self.main_menu.display()
+        self.handle_button_result(self.main_menu.handle_input(event))
+
+    def handle_settings(self, event):
+        self.settings_menu.display()
+        self.handle_button_result(self.settings_menu.handle_input(event))
+
+    def handle_shop(self, event):
+        self.shop_menu.display()
+        self.handle_button_result(self.shop_menu.handle_input(event))
+
+    def handle_controls(self, event):
+        self.controls_menu.display()
+        self.handle_button_result(self.controls_menu.handle_input(event))
+
+    def handle_stats(self, event):
+        self.stats_menu.display()
+        self.handle_button_result(self.stats_menu.handle_input(event))
+
+    def handle_playing(self, event):
+        if not self.freeze:
+            if event.type == self.obstacle_timer:
+                self.spawn_obstacle()
+            elif event.type == self.enemy_timer:
+                self.spawn_enemy()
+            elif event.type == self.power_up_timer:
+                self.spawn_power_up()
+            elif event.type == self.background_speed_timer:
+                self.scrolling_bg_speed += self.assets.config["bg_speed_increase"]
+
+    def spawn_obstacle(self):
+        self.obstacles.add(random.choice([
+            Obstacle([self.width + random.randint(200, 500), 480],
+                     [pygame.transform.flip(image, True, False) for image in self.assets.car_images], 'car', 5, self),
+            Obstacle([self.width + random.randint(200, 500), 585], self.assets.meteor_images, 'meteor', 0, self)
+        ]))
+
+    def spawn_enemy(self):
+        enemy_choice = random.choice([EnemyType.DRONE, EnemyType.ROBOT])
+        if not any(enemy.type == enemy_choice for enemy in self.enemies):
+            enemy_position = [1500, 100] if enemy_choice == EnemyType.DRONE else [1500, 512]
+            self.enemies.add(Enemy(enemy_position, enemy_choice, self))
+
+    def spawn_power_up(self):
+        power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE]
+        if not self.player.sprite.weapon.max_shots == self.assets.config["multiple_shots"]:
+            power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
+        power_up_choice = random.choice(power_up_list)
+        self.power_ups.add(PowerUp([1500, 0], power_up_choice, self))
 
     def update(self):
         """
