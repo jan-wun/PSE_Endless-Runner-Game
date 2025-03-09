@@ -148,6 +148,7 @@ class Game:
         event_dispatcher = {
             pygame.QUIT: self.end_game,
             pygame.KEYDOWN: self.handle_keydown,
+            pygame.KEYUP: self.handle_keyup,
             pygame.MOUSEBUTTONDOWN: self.handle_mouse_button_down,
             pygame.MOUSEBUTTONUP: self.handle_mouse_button_up
         }
@@ -179,6 +180,11 @@ class Game:
             self.restart_game()
         elif event.key == pygame.K_p and self.current_state == GameState.PLAYING:
             self.pause_button_clicked = True
+
+    def handle_keyup(self, event):
+        if event.key == pygame.K_p and self.pause_button_clicked:
+            self.pause_button_clicked = False
+            self.current_state = GameState.PAUSED
 
     def handle_mouse_button_down(self, event):
         mouse_x, mouse_y = pygame.mouse.get_pos()
