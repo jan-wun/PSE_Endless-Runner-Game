@@ -24,7 +24,7 @@ class Assets(object):
 
     def load_assets(self):
         """
-        Load game assets using a JSON configuration.
+        Load game assets using a JSON configuration while maintaining full compatibility.
         """
         self.load_config()
         audio_path = self.config["audio_path"]
@@ -39,21 +39,28 @@ class Assets(object):
         with open(os.path.join(image_path, "assets_config.json"), "r") as file:
             asset_definitions = json.load(file)
 
-        self.images = {}
-        for key, asset in asset_definitions.items():
-            self.images[key] = load_image(asset["path"], asset.get("scale", 1))
+        # Load all images and maintain original attribute names
+        for attr, asset in asset_definitions.items():
+            if isinstance(asset, list):
+                setattr(self, attr, [load_image(entry["path"], entry.get("scale", 1)) for entry in asset])
+            else:
+                setattr(self, attr, load_image(asset["path"], asset.get("scale", 1)))
 
         # Load audio
-        self.sounds = {name: pygame.mixer.Sound(os.path.join(audio_path, f"{name}.mp3")) for name in
-                       ["click", "jump", "shoot"]}
         self.music = pygame.mixer.Sound(os.path.join(audio_path, "music.mp3"))
+        self.sounds = {
+            "click": pygame.mixer.Sound(os.path.join(audio_path, "click.mp3")),
+            "jump": pygame.mixer.Sound(os.path.join(audio_path, "jump.mp3")),
+            "shoot": pygame.mixer.Sound(os.path.join(audio_path, "shoot.mp3"))
+        }
 
         # Load fonts
-        self.fonts = {
-            "big": pygame.font.Font(os.path.join(font_path, "stacker.ttf"), 100),
-            "middle": pygame.font.Font(os.path.join(font_path, "stacker.ttf"), 60),
-            "small": pygame.font.Font(os.path.join(font_path, "stacker.ttf"), 30)
-        }
+        self.font_big = pygame.font.Font(os.path.join(font_path, "stacker.ttf"), 100)
+        self.font_middle = pygame.font.Font(os.path.join(font_path, "stacker.ttf"), 60)
+        self.font_small = pygame.font.Font(os.path.join(font_path, "stacker.ttf"), 30)
+        self.font_comicsans_big = pygame.font.SysFont("comicsans", 40)
+        self.font_comicsans_middle = pygame.font.SysFont("comicsans", 30)
+        self.font_comicsans_small = pygame.font.SysFont("comicsans", 22)
 
     def load_config(self):
         with open('config.json', 'r') as file:

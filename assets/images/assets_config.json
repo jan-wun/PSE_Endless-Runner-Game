@@ -1,21 +1,65 @@
 {
-    "background": {"path": "background.png", "scale": 1},
-    "pause_button": {"path": "icons/pause_button.png", "scale": 0.25},
-    "player_idle": {"path": "player/idle/idle1.png", "scale": 4},
-    "player_walk": {"path": "player/walk/walk1.png", "scale": 4},
-    "player_jump": {"path": "player/jump/jump1.png", "scale": 4},
-    "player_slide": {"path": "player/slide/slide1.png", "scale": 4},
-    "car": {"path": "obstacles/car.png", "scale": 1.5},
-    "meteor": {"path": "obstacles/meteor.png", "scale": 0.25},
-    "drone": {"path": "enemies/drone/idle/idle1.png", "scale": 3},
-    "robot": {"path": "enemies/robot/idle/idle1.png", "scale": 3},
-    "capsule": {"path": "bullets/capsule.png", "scale": 1.5},
-    "projectile": {"path": "bullets/projectile.png", "scale": 1.5},
-    "menu_background": {"path": "menu.png", "scale": 1},
-    "game_over": {"path": "game_over.png", "scale": 0.5},
-    "pause": {"path": "pause.png", "scale": 0.15},
-    "settings_icon": {"path": "icons/settings.png", "scale": 0.6},
+    "background_image": {"path": "background.png"},
+    "pause_button_image": {"path": "icons/pause_button.png", "scale": 0.25},
+    "player_idle": [
+        {"path": "player/idle/idle1.png", "scale": 4},
+        {"path": "player/idle/idle2.png", "scale": 4},
+        {"path": "player/idle/idle3.png", "scale": 4},
+        {"path": "player/idle/idle4.png", "scale": 4}
+    ],
+    "player_walk": [
+        {"path": "player/walk/walk1.png", "scale": 4},
+        {"path": "player/walk/walk2.png", "scale": 4},
+        {"path": "player/walk/walk3.png", "scale": 4},
+        {"path": "player/walk/walk4.png", "scale": 4},
+        {"path": "player/walk/walk5.png", "scale": 4},
+        {"path": "player/walk/walk6.png", "scale": 4}
+    ],
+    "player_jump": [
+        {"path": "player/jump/jump1.png", "scale": 4},
+        {"path": "player/jump/jump2.png", "scale": 4},
+        {"path": "player/jump/jump3.png", "scale": 4},
+        {"path": "player/jump/jump4.png", "scale": 4}
+    ],
+    "player_slide": [
+        {"path": "player/slide/slide1.png", "scale": 4}
+    ],
+    "car_images": [
+        {"path": "obstacles/car.png", "scale": 1.5}
+    ],
+    "meteor_images": [
+        {"path": "obstacles/meteor.png", "scale": 0.25}
+    ],
+    "drone_images": [
+        {"path": "enemies/drone/idle/idle1.png", "scale": 3},
+        {"path": "enemies/drone/idle/idle2.png", "scale": 3},
+        {"path": "enemies/drone/idle/idle3.png", "scale": 3},
+        {"path": "enemies/drone/idle/idle4.png", "scale": 3}
+    ],
+    "robot_images": [
+        {"path": "enemies/robot/idle/idle1.png", "scale": 3},
+        {"path": "enemies/robot/idle/idle2.png", "scale": 3},
+        {"path": "enemies/robot/idle/idle3.png", "scale": 3},
+        {"path": "enemies/robot/idle/idle4.png", "scale": 3}
+    ],
+    "capsule_image": {"path": "bullets/capsule.png", "scale": 1.5},
+    "projectile_image": {"path": "bullets/projectile.png", "scale": 1.5},
+    "menu_background": {"path": "menu.png"},
+    "game_over_image": {"path": "game_over.png", "scale": 0.5},
+    "pause_image": {"path": "pause.png", "scale": 0.15},
+    "settings_icon_big": {"path": "icons/settings.png", "scale": 0.6},
     "quit_icon": {"path": "icons/quit.png", "scale": 0.15},
     "invincible_powerup": {"path": "power_ups/invincible.png", "scale": 1},
-    "freeze_powerup": {"path": "power_ups/freeze.png", "scale": 1}
+    "freeze_powerup": {"path": "power_ups/freeze.png", "scale": 1},
+    "multiple_shots_power_up": {"path": "power_ups/multiple_shots.png", "scale": 1},
+    "default_weapon_bullet": {"path": "bullets/default_weapon.png", "scale": 3},
+    "default_weapon_images": [
+        {"path": "player/weapon/weapon1_right.png", "scale": 2.5},
+        {"path": "player/weapon/weapon1_left.png", "scale": 2.5}
+    ],
+    "upgrade_weapon_bullet": {"path": "bullets/upgrade_weapon.png", "scale": 3},
+    "upgrade_weapon_images": [
+        {"path": "player/weapon/weapon2_right.png", "scale": 2.5},
+        {"path": "player/weapon/weapon2_left.png", "scale": 2.5}
+    ]
 }
