@@ -24,27 +24,32 @@ class Assets(object):
 
     def load_assets(self):
         """
-        Load game assets using a JSON configuration while maintaining full compatibility.
+        Load game assets using a JSON configuration while maintaining full compatibility and correct scaling.
         """
         self.load_config()
         audio_path = self.config["audio_path"]
         font_path = self.config["font_path"]
         image_path = self.config["image_path"]
 
-        def load_image(path, scale=1):
-            """Helper function to load and scale images."""
+        def load_image(path, scale=None, fixed_size=None):
+            """Helper function to load and scale images correctly."""
             image = pygame.image.load(os.path.join(image_path, path)).convert_alpha()
-            return pygame.transform.scale_by(image, scale) if scale != 1 else image
+            if fixed_size:
+                return pygame.transform.scale(image, fixed_size)
+            if scale:
+                return pygame.transform.scale_by(image, scale)
+            return image
 
         with open(os.path.join(image_path, "assets_config.json"), "r") as file:
             asset_definitions = json.load(file)
 
-        # Load all images and maintain original attribute names
+        # Load all images while applying correct scaling
         for attr, asset in asset_definitions.items():
             if isinstance(asset, list):
-                setattr(self, attr, [load_image(entry["path"], entry.get("scale", 1)) for entry in asset])
+                setattr(self, attr,
+                        [load_image(entry["path"], entry.get("scale"), entry.get("fixed_size")) for entry in asset])
             else:
-                setattr(self, attr, load_image(asset["path"], asset.get("scale", 1)))
+                setattr(self, attr, load_image(asset["path"], asset.get("scale"), asset.get("fixed_size")))
 
         # Load audio
         self.music = pygame.mixer.Sound(os.path.join(audio_path, "music.mp3"))

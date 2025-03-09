@@ -44,7 +44,7 @@
     ],
     "capsule_image": {"path": "bullets/capsule.png", "scale": 1.5},
     "projectile_image": {"path": "bullets/projectile.png", "scale": 1.5},
-    "menu_background": {"path": "menu.png"},
+    "menu_background": {"path": "menu.png", "fixed_size": [1344, 768]},
     "game_over_image": {"path": "game_over.png", "scale": 0.5},
     "pause_image": {"path": "pause.png", "scale": 0.15},
     "settings_icon_big": {"path": "icons/settings.png", "scale": 0.6},
@@ -55,22 +55,22 @@
     "heart_icon": {"path": "icons/heart.png", "scale": 0.03},
     "weapon_icon": {"path": "player/weapon/weapon2_right.png", "scale": 5},
     "invincible_powerup": [
-        {"path": "power_ups/invincible.png", "scale": 1}
+        {"path": "power_ups/invincible.png", "fixed_size": [56, 56]}
     ],
     "invincible_powerup_inactive": [
-        {"path": "power_ups/invincible_inactive.png", "scale": 1}
+        {"path": "power_ups/invincible_inactive.png", "fixed_size": [56, 56]}
     ],
     "freeze_powerup": [
-        {"path": "power_ups/freeze.png", "scale": 1}
+        {"path": "power_ups/freeze.png", "fixed_size": [56, 56]}
     ],
     "freeze_powerup_inactive": [
-        {"path": "power_ups/freeze_inactive.png", "scale": 1}
+        {"path": "power_ups/freeze_inactive.png", "fixed_size": [56, 56]}
     ],
     "multiple_shots_power_up": [
-        {"path": "power_ups/multiple_shots.png", "scale": 1}
+        {"path": "power_ups/multiple_shots.png", "fixed_size": [56, 56]}
     ],
     "multiple_shots_power_up_inactive": [
-        {"path": "power_ups/multiple_shots_inactive.png", "scale": 1}
+        {"path": "power_ups/multiple_shots_inactive.png", "fixed_size": [56, 56]}
     ],
     "default_weapon_bullet": {"path": "bullets/default_weapon.png", "scale": 3},
     "default_weapon_images": [
