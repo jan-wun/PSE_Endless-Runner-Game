@@ -1,0 +1,21 @@
+{
+    "background": {"path": "background.png", "scale": 1},
+    "pause_button": {"path": "icons/pause_button.png", "scale": 0.25},
+    "player_idle": {"path": "player/idle/idle1.png", "scale": 4},
+    "player_walk": {"path": "player/walk/walk1.png", "scale": 4},
+    "player_jump": {"path": "player/jump/jump1.png", "scale": 4},
+    "player_slide": {"path": "player/slide/slide1.png", "scale": 4},
+    "car": {"path": "obstacles/car.png", "scale": 1.5},
+    "meteor": {"path": "obstacles/meteor.png", "scale": 0.25},
+    "drone": {"path": "enemies/drone/idle/idle1.png", "scale": 3},
+    "robot": {"path": "enemies/robot/idle/idle1.png", "scale": 3},
+    "capsule": {"path": "bullets/capsule.png", "scale": 1.5},
+    "projectile": {"path": "bullets/projectile.png", "scale": 1.5},
+    "menu_background": {"path": "menu.png", "scale": 1},
+    "game_over": {"path": "game_over.png", "scale": 0.5},
+    "pause": {"path": "pause.png", "scale": 0.15},
+    "settings_icon": {"path": "icons/settings.png", "scale": 0.6},
+    "quit_icon": {"path": "icons/quit.png", "scale": 0.15},
+    "invincible_powerup": {"path": "power_ups/invincible.png", "scale": 1},
+    "freeze_powerup": {"path": "power_ups/freeze.png", "scale": 1}
+}
