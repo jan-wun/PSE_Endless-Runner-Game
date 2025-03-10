@@ -157,13 +157,15 @@ def test_check_collision(mock_game, sprite_type, should_collide):
     def create_sprite_with_mask(position, size):
         sprite = pygame.sprite.Sprite()
         sprite.image = pygame.Surface(size, pygame.SRCALPHA)
-        sprite.image.fill((255, 255, 255, 255))  # Opaque white
+        sprite.image.fill((255, 255, 255, 255))  # Opaque white to ensure mask generation
         sprite.rect = sprite.image.get_rect(topleft=position)
         sprite.mask = pygame.mask.from_surface(sprite.image)
         return sprite
 
     if sprite_type == "player":
         test_sprite = mock_game.player.sprite
+        test_sprite.image = pygame.Surface((50, 50), pygame.SRCALPHA)
+        test_sprite.image.fill((255, 255, 255, 255))  # Ensure mask is properly generated
         test_sprite.rect = pygame.Rect(100, 100, 50, 50)
         test_sprite.mask = pygame.mask.from_surface(test_sprite.image)
 
@@ -172,6 +174,8 @@ def test_check_collision(mock_game, sprite_type, should_collide):
 
     elif sprite_type == "enemy":
         test_sprite = Enemy(position=[100, 100], enemy_type=None, game=mock_game)
+        test_sprite.image = pygame.Surface((50, 50), pygame.SRCALPHA)
+        test_sprite.image.fill((255, 255, 255, 255))
         test_sprite.rect = pygame.Rect(100, 100, 50, 50)
         test_sprite.mask = pygame.mask.from_surface(test_sprite.image)
 
@@ -192,6 +196,8 @@ def test_check_collision(mock_game, sprite_type, should_collide):
 
     elif sprite_type == "player_projectile":
         test_sprite = mock_game.player.sprite
+        test_sprite.image = pygame.Surface((50, 50), pygame.SRCALPHA)
+        test_sprite.image.fill((255, 255, 255, 255))
         test_sprite.rect = pygame.Rect(100, 100, 50, 50)
         test_sprite.mask = pygame.mask.from_surface(test_sprite.image)
 
