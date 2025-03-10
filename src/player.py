@@ -109,82 +109,64 @@ class Player(Entity):
             elif not keys[pygame.K_SPACE]:
                 self.shoot_pressed = False
 
+    ACTIONS = {
+        "left": {
+            "state": PlayerState.WALKING_LEFT,
+            "position_update": lambda self: max(self.position[0] - (self.speed + self.game.scrolling_bg_speed), 0)
+        },
+        "right": {
+            "state": PlayerState.WALKING_RIGHT,
+            "position_update": lambda self: min(self.position[0] + self.speed, self.game.width - self.rect.width)
+        },
+        "jump": {
+            "state": PlayerState.JUMPING,
+            "condition": lambda self: self.is_jumping
+        },
+        "slide": {
+            "state": PlayerState.SLIDING,
+            "condition": lambda self: self.is_sliding,
+            "position_update": lambda self: setattr(self, 'position', (self.position[0], self.slide_height))
+        }
+    }
+
+    def perform_action(self, action):
+        """
+        Perform an action ("left", "right", "jump", "slide") using a dictionary-based approach.
+        """
+        if action in self.ACTIONS:
+            action_data = self.ACTIONS[action]
+            if "condition" not in action_data or action_data["condition"](self):
+                self.current_state = action_data["state"]
+                if "position_update" in action_data:
+                    if callable(action_data["position_update"]):
+                        action_data["position_update"](self)
+                    else:
+                        self.position[0] = action_data["position_update"](self)
+
+
     def move_left(self):
         """
         Move the player to the left.
         """
-        self.current_state = PlayerState.WALKING_LEFT
-        # Make sure that the new position is within the left boundary.
-        new_x = self.position[0] - (self.speed + self.game.scrolling_bg_speed)
-        self.position[0] = max(new_x, 0)
+        self.perform_action("left")
 
     def move_right(self):
         """
         Move the player to the right.
         """
-        self.current_state = PlayerState.WALKING_RIGHT
-        # Make sure that the new position is within the right boundary.
-        new_x = self.position[0] + self.speed
-        self.position[0] = min(new_x, self.game.width - self.rect.width)
+        self.perform_action("right")
 
     def jump(self):
         """
         Make the player jump.
         """
-        if self.is_jumping:
-            self.current_state = PlayerState.JUMPING
-
-            # Check if the jump is still going.
-            if self.jump_speed >= -self.jump_height:
-                # Determine the direction of the jump.
-                direction = 1 if self.jump_speed >= 0 else -1
-                # Adjust the player's vertical position based on the jump speed.
-                self.position[1] -= self.jump_speed ** 2 * 0.1 * direction
-                # Decrease the jump speed.
-                self.jump_speed -= 1
-
-                # Check for simultaneous key presses during the jump.
-                keys = pygame.key.get_pressed()
-                if keys[pygame.K_LEFT]:
-                    self.previous_walking_state = PlayerState.WALKING_LEFT
-                elif keys[pygame.K_RIGHT]:
-                    self.previous_walking_state = PlayerState.WALKING_RIGHT
-            else:
-                # Reset jumping state and jump speed.
-                self.is_jumping = False
-                self.jump_speed = self.jump_height
+        self.perform_action("jump")
 
     def slide(self):
         """
         Make the player slide.
         """
-        if self.is_sliding:
-            self.current_state = PlayerState.SLIDING
-            self.position[1] = self.slide_height
-
-            # Gradually reduce speed during the slide.
-            self.slide_speed -= self.slide_speed_reduction
-
-            if self.slide_speed > 0:
-                # Calculate new x position of player when he slides to the right.
-                if self.previous_walking_state == PlayerState.WALKING_RIGHT:
-                    new_x = self.position[0] + self.slide_speed
-                # Calculate new x position of player when he slides to the left.
-                elif self.previous_walking_state == PlayerState.WALKING_LEFT:
-                    new_x = self.position[0] - (self.slide_speed + self.game.scrolling_bg_speed)
-
-                # Make sure that the new x position is within the boundaries.
-                new_x = max(0, min(new_x, self.game.width - self.rect.width))
-                # Move player to new x position.
-                self.position[0] = new_x
-            else:
-                # End sliding when the speed is zero.
-                self.is_sliding = False
-                self.position[1] -= self.slide_end_position
-                if self.previous_walking_state == PlayerState.WALKING_RIGHT:
-                    self.position[0] += self.image.get_width() - self.images_idle[0].get_width()
-                # Reset speed to the default value.
-                self.slide_speed = self.speed
+        self.perform_action("slide")
 
     def update_animation(self):
         """
