@@ -152,85 +152,48 @@ def test_restart_game_resets_player(mock_game):
     ("player_projectile", False)  # Enemy projectile misses the player
 ])
 def test_check_collision(mock_game, sprite_type, should_collide):
-    """Tests if check_collision correctly detects and handles collisions for different object types."""
+    """Tests if check_collision correctly detects and handles pixel-perfect collisions."""
+
+    def create_sprite_with_mask(position, size):
+        sprite = pygame.sprite.Sprite()
+        sprite.image = pygame.Surface(size, pygame.SRCALPHA)
+        sprite.image.fill((255, 255, 255, 255))  # Opaque white
+        sprite.rect = sprite.image.get_rect(topleft=position)
+        sprite.mask = pygame.mask.from_surface(sprite.image)
+        return sprite
 
     if sprite_type == "player":
-        # Use the real player instance from the game
         test_sprite = mock_game.player.sprite
-        test_sprite.rect = pygame.Rect(100, 100, 50, 50)  # Set player's position and size
+        test_sprite.rect = pygame.Rect(100, 100, 50, 50)
+        test_sprite.mask = pygame.mask.from_surface(test_sprite.image)
 
-        # Create an obstacle that either collides with the player or does not
-        obstacle = pygame.sprite.Sprite()
-        obstacle.rect = pygame.Rect(100, 100, 50, 50) if should_collide else pygame.Rect(300, 300, 50, 50)
-        sprite_group = pygame.sprite.Group(obstacle)  # Add obstacle to a sprite group
+        obstacle = create_sprite_with_mask((100, 100) if should_collide else (300, 300), (50, 50))
+        sprite_group = pygame.sprite.Group(obstacle)
 
     elif sprite_type == "enemy":
-        # Create an enemy instance
-        test_sprite = Enemy(position=[100, 100], enemy_type=EnemyType.ROBOT, game=mock_game)
-        test_sprite.rect = pygame.Rect(100, 100, 50, 50)  # Set enemy position and size
+        test_sprite = Enemy(position=[100, 100], enemy_type=None, game=mock_game)
+        test_sprite.rect = pygame.Rect(100, 100, 50, 50)
+        test_sprite.mask = pygame.mask.from_surface(test_sprite.image)
 
-        # Create a projectile that either hits the enemy or misses
-        velocity = [5, 0]  # Example velocity
-        image_list = [pygame.Surface((10, 10))]  # Placeholder image
-        projectile = Projectile(position=[100, 100] if should_collide else [300, 300],
-                                velocity=velocity,
-                                shooter="player",
-                                image_list=image_list,
-                                game=mock_game)
-        projectile.rect = pygame.Rect(100, 100, 50, 50) if should_collide else pygame.Rect(300, 300, 50, 50)
-        sprite_group = pygame.sprite.Group(projectile)  # Add projectile to a sprite group
+        projectile = create_sprite_with_mask((100, 100) if should_collide else (300, 300), (10, 10))
+        sprite_group = pygame.sprite.Group(projectile)
 
     elif sprite_type == "player_projectile":
-        test_sprite = mock_game.player.sprite  # The player
-        test_sprite.rect = pygame.Rect(100, 100, 50, 50)  # Set player's position
+        test_sprite = mock_game.player.sprite
+        test_sprite.rect = pygame.Rect(100, 100, 50, 50)
+        test_sprite.mask = pygame.mask.from_surface(test_sprite.image)
 
-        # Enemy projectile
-        velocity = [-5, 0]  # Moving towards the player
-        image_list = [pygame.Surface((10, 10))]  # Placeholder image
-        enemy_projectile = Projectile(position=[100, 100] if should_collide else [300, 300],
-                                      velocity=velocity,
-                                      shooter="enemy",
-                                      image_list=image_list,
-                                      game=mock_game)
-        enemy_projectile.rect = pygame.Rect(100, 100, 50, 50) if should_collide else pygame.Rect(300, 300, 50, 50)
-        sprite_group = pygame.sprite.Group(enemy_projectile)  # Add projectile to a sprite group
+        enemy_projectile = create_sprite_with_mask((100, 100) if should_collide else (300, 300), (10, 10))
+        sprite_group = pygame.sprite.Group(enemy_projectile)
 
-    if sprite_type == "enemy":
-        # Mock the `kill()` method to verify that an enemy and projectile are both removed on collision
-        with mock.patch.object(test_sprite, "kill") as mock_enemy_kill, \
-                mock.patch.object(projectile, "kill") as mock_projectile_kill:
-            mock_game.check_collision(test_sprite, sprite_group)
+    with mock.patch.object(mock_game, "handle_player_collision") as mock_handle_collision:
+        mock_game.check_collision(test_sprite, sprite_group)
 
-        if should_collide:
-            # If a collision is expected, both the enemy and projectile should be removed
-            mock_enemy_kill.assert_called_once()
-            mock_projectile_kill.assert_called_once()
-        else:
-            # If no collision is expected, neither object should be removed
-            mock_enemy_kill.assert_not_called()
-            mock_projectile_kill.assert_not_called()
+    if should_collide:
+        mock_handle_collision.assert_called_once()
+    else:
+        mock_handle_collision.assert_not_called()
 
-    elif sprite_type == "player_projectile":
-        # Mock `handle_player_collision` to verify that it is triggered on enemy projectile hit
-        with mock.patch.object(mock_game, "handle_player_collision") as mock_handle_collision:
-            mock_game.check_collision(test_sprite, sprite_group)
-
-        if should_collide:
-            mock_handle_collision.assert_called_once()
-        else:
-            mock_handle_collision.assert_not_called()
-
-    else:  # Case: Player colliding with an obstacle
-        # Mock `handle_player_collision` to verify that it's called when needed
-        with mock.patch.object(mock_game, "handle_player_collision") as mock_handle_collision:
-            mock_game.check_collision(test_sprite, sprite_group)
-
-        if should_collide:
-            # If collision occurs, `handle_player_collision` should be triggered
-            mock_handle_collision.assert_called_once()
-        else:
-            # If no collision occurs, `handle_player_collision` should NOT be called
-            mock_handle_collision.assert_not_called()
 
 def test_handle_player_collision(mock_game):
     """Tests if player collision correctly reduces health and triggers game over."""

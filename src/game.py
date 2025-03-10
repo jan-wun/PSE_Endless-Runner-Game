@@ -405,34 +405,25 @@ class Game:
             self.end_game()
 
     def check_collision(self, sprite, sprite_group):
-        """
-        Checks for collision between a single sprite and a sprite group.
+        """Checks for a pixel-perfect collision between a sprite and a group of sprites."""
+        colliding_sprites = pygame.sprite.spritecollide(sprite, sprite_group, False,
+                                                        collided=pygame.sprite.collide_mask)
 
-        Args:
-            sprite (pygame.sprite.Sprite): The sprite used to check for collisions.
-            sprite_group (pygame.sprite.Group): The sprite group used to check for collisions.
-        """
-        # Check whether sprite collides with any sprite in sprite group.
-        hit_sprite = pygame.sprite.spritecollideany(sprite, sprite_group)
-        if hit_sprite:
-            # Check whether the sprite is an enemy.
+        if colliding_sprites:
+            hit_sprite = colliding_sprites[0]
             if isinstance(sprite, Enemy):
-                # Kill the enemy and the sprite it hit and return a shot to the player.
                 sprite.kill()
                 hit_sprite.kill()
-                self.player.sprite.weapon.shots += 1
-            # Check whether the sprite is the player.
             elif isinstance(sprite, Player):
-                # Check whether a power up collided with the player.
                 if isinstance(hit_sprite, PowerUp):
-                    # Apply power up and kill it.
                     hit_sprite.apply_powerup()
                     hit_sprite.kill()
-                elif isinstance(hit_sprite, Projectile):
-                    if hit_sprite.shooter != "player":
-                        self.handle_player_collision()
+                elif isinstance(hit_sprite, Projectile) and hit_sprite.shooter != "player":
+                    sprite.game.handle_player_collision()
                 else:
-                    self.handle_player_collision()
+                    sprite.game.handle_player_collision()
+            return hit_sprite
+        return None
 
     def handle_player_collision(self):
         """
