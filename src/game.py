@@ -414,6 +414,8 @@ class Game:
             if isinstance(sprite, Enemy):
                 sprite.kill()
                 hit_sprite.kill()
+                if hasattr(sprite.game.player.sprite.weapon, 'shots'):
+                    sprite.game.player.sprite.weapon.shots += 1  # Spieler bekommt den Schuss zurück
             elif isinstance(sprite, Player):
                 if isinstance(hit_sprite, PowerUp):
                     hit_sprite.apply_powerup()
