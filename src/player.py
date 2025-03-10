@@ -112,20 +112,21 @@ class Player(Entity):
     ACTIONS = {
         "left": {
             "state": PlayerState.WALKING_LEFT,
-            "position_update": lambda self: max(self.position[0] - (self.speed + self.game.scrolling_bg_speed), 0)
+            "position_update": lambda self: setattr(self, 'position', (max(self.position[0] - (self.speed + self.game.scrolling_bg_speed), 0), self.position[1]))
         },
         "right": {
             "state": PlayerState.WALKING_RIGHT,
-            "position_update": lambda self: min(self.position[0] + self.speed, self.game.width - self.rect.width)
+            "position_update": lambda self: setattr(self, 'position', (min(self.position[0] + self.speed, self.game.width - self.rect.width), self.position[1]))
         },
         "jump": {
             "state": PlayerState.JUMPING,
-            "condition": lambda self: self.is_jumping
+            "condition": lambda self: self.is_jumping,
+            "position_update": lambda self: setattr(self, 'position', (self.position[0], self.position[1] - self.jump_strength))
         },
         "slide": {
             "state": PlayerState.SLIDING,
             "condition": lambda self: self.is_sliding,
-            "position_update": lambda self: setattr(self, 'position', (self.position[0], self.slide_height))
+            "position_update": lambda self: setattr(self, 'position', (self.position[0] + self.slide_speed, self.slide_height))
         }
     }
 
@@ -138,10 +139,7 @@ class Player(Entity):
             if "condition" not in action_data or action_data["condition"](self):
                 self.current_state = action_data["state"]
                 if "position_update" in action_data:
-                    if callable(action_data["position_update"]):
-                        action_data["position_update"](self)
-                    else:
-                        self.position[0] = action_data["position_update"](self)
+                    action_data["position_update"](self)
 
 
     def move_left(self):
