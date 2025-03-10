@@ -124,7 +124,9 @@ class Player(Entity):
             "position_update": lambda self: (
                 setattr(self, 'position', [self.position[0], self.position[1] - self.jump_speed ** 2 * 0.1 * (1 if self.jump_speed >= 0 else -1)]),
                 setattr(self, 'jump_speed', self.jump_speed - 1),
-                setattr(self, 'is_jumping', False) if self.jump_speed < -self.jump_height else None
+                setattr(self, 'is_jumping', False) if self.jump_speed < -self.jump_height else None,
+                setattr(self, 'jump_speed', self.jump_height) if not self.is_jumping else None,
+                self.adjust_jump_direction()
             )
         },
         "slide": {
@@ -148,6 +150,16 @@ class Player(Entity):
             )
         }
     }
+
+    def adjust_jump_direction(self):
+        """
+        Adjust the direction of the jump based on user input.
+        """
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.previous_walking_state = PlayerState.WALKING_LEFT
+        elif keys[pygame.K_RIGHT]:
+            self.previous_walking_state = PlayerState.WALKING_RIGHT
 
     def perform_action(self, action):
         """
