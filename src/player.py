@@ -112,21 +112,24 @@ class Player(Entity):
     ACTIONS = {
         "left": {
             "state": PlayerState.WALKING_LEFT,
-            "position_update": lambda self: setattr(self, 'position', (max(self.position[0] - (self.speed + self.game.scrolling_bg_speed), 0), self.position[1]))
+            "position_update": lambda self: setattr(self, 'position', [max(self.position[0] - (self.speed + self.game.scrolling_bg_speed), 0), self.position[1]])
         },
         "right": {
             "state": PlayerState.WALKING_RIGHT,
-            "position_update": lambda self: setattr(self, 'position', (min(self.position[0] + self.speed, self.game.width - self.rect.width), self.position[1]))
+            "position_update": lambda self: setattr(self, 'position', [min(self.position[0] + self.speed, self.game.width - self.rect.width), self.position[1]])
         },
         "jump": {
             "state": PlayerState.JUMPING,
             "condition": lambda self: self.is_jumping,
-            "position_update": lambda self: setattr(self, 'position', (self.position[0], self.position[1] - self.jump_strength))
+            "position_update": lambda self: setattr(self, 'velocity_y', -self.jump_force) if self.is_jumping else None
         },
         "slide": {
             "state": PlayerState.SLIDING,
             "condition": lambda self: self.is_sliding,
-            "position_update": lambda self: setattr(self, 'position', (self.position[0] + self.slide_speed, self.slide_height))
+            "position_update": lambda self: (
+                setattr(self, 'position', [self.position[0] + (self.speed if self.previous_walking_state == PlayerState.WALKING_RIGHT else -self.speed), self.slide_height])
+                if self.is_sliding else None
+            )
         }
     }
 
