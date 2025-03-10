@@ -121,14 +121,30 @@ class Player(Entity):
         "jump": {
             "state": PlayerState.JUMPING,
             "condition": lambda self: self.is_jumping,
-            "position_update": lambda self: setattr(self, 'velocity_y', -self.jump_force) if self.is_jumping else None
+            "position_update": lambda self: (
+                setattr(self, 'position', [self.position[0], self.position[1] - self.jump_speed ** 2 * 0.1 * (1 if self.jump_speed >= 0 else -1)]),
+                setattr(self, 'jump_speed', self.jump_speed - 1),
+                setattr(self, 'is_jumping', False) if self.jump_speed < -self.jump_height else None
+            )
         },
         "slide": {
             "state": PlayerState.SLIDING,
             "condition": lambda self: self.is_sliding,
             "position_update": lambda self: (
-                setattr(self, 'position', [self.position[0] + (self.speed if self.previous_walking_state == PlayerState.WALKING_RIGHT else -self.speed), self.slide_height])
-                if self.is_sliding else None
+                setattr(self, 'position', [self.position[0], self.slide_height]),
+                setattr(self, 'slide_speed', self.slide_speed - self.slide_speed_reduction),
+                setattr(self, 'position', [
+                    max(0, min(
+                        self.position[0] + self.slide_speed if self.previous_walking_state == PlayerState.WALKING_RIGHT else self.position[0] - (self.slide_speed + self.game.scrolling_bg_speed),
+                        self.game.width - self.rect.width
+                    )),
+                    self.position[1]
+                ]) if self.slide_speed > 0 else (
+                    setattr(self, 'is_sliding', False),
+                    setattr(self, 'position', [self.position[0], self.position[1] - self.slide_end_position]),
+                    setattr(self, 'position', [self.position[0] + self.image.get_width() - self.images_idle[0].get_width(), self.position[1]]) if self.previous_walking_state == PlayerState.WALKING_RIGHT else None,
+                    setattr(self, 'slide_speed', self.speed)
+                )
             )
         }
     }
