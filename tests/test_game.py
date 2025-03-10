@@ -144,12 +144,12 @@ def test_restart_game_resets_player(mock_game):
     assert player.weapon.type == WeaponType.DEFAULT, "Player weapon should reset to default!"
 
 @pytest.mark.parametrize("sprite_type, should_collide", [
-    ("player", True),  # Player collides with an obstacle
-    ("enemy", True),  # Enemy collides with a projectile
-    ("player_projectile", True),  # Player gets hit by an enemy projectile
-    ("player", False),  # Player does NOT collide with anything
-    ("enemy", False),  # Enemy does NOT collide with a projectile
-    ("player_projectile", False)  # Enemy projectile misses the player
+    ("player", True),  # Spieler kollidiert mit Hindernis
+    ("enemy", True),  # Gegner kollidiert mit Projektil
+    ("player_projectile", True),  # Spieler wird von Projektil getroffen
+    ("player", False),  # Spieler kollidiert mit nichts
+    ("enemy", False),  # Gegner kollidiert nicht mit Projektil
+    ("player_projectile", False)  # Projektil verfehlt Spieler
 ])
 def test_check_collision(mock_game, sprite_type, should_collide):
     """Tests if check_collision correctly detects and handles pixel-perfect collisions."""
@@ -177,6 +177,18 @@ def test_check_collision(mock_game, sprite_type, should_collide):
 
         projectile = create_sprite_with_mask((100, 100) if should_collide else (300, 300), (10, 10))
         sprite_group = pygame.sprite.Group(projectile)
+
+        with mock.patch.object(test_sprite, "kill") as mock_enemy_kill, \
+             mock.patch.object(projectile, "kill") as mock_projectile_kill:
+            mock_game.check_collision(test_sprite, sprite_group)
+
+        if should_collide:
+            mock_enemy_kill.assert_called_once()
+            mock_projectile_kill.assert_called_once()
+        else:
+            mock_enemy_kill.assert_not_called()
+            mock_projectile_kill.assert_not_called()
+        return
 
     elif sprite_type == "player_projectile":
         test_sprite = mock_game.player.sprite
