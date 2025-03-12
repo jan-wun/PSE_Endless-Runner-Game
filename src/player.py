@@ -249,9 +249,13 @@ class Player(Entity):
             self.previous_walking_state = self.current_state
         # Update weapon.
         self.weapon.update()
-        if self.on_moving_platform and self.platform:
-            self.rect.x += self.platform.speed
+        # Falls der Spieler auf einer Plattform steht, speichere vorherige rect-Position
+        previous_rect = self.rect.copy()
         super().update()
+
+        # Nach dem super().update() die Bewegung mit der Plattform sicherstellen
+        if self.on_moving_platform and self.platform:
+            self.rect.x = previous_rect.x + self.platform.speed  # Position nicht überschreiben
 
     def reset(self):
         """

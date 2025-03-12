@@ -437,7 +437,7 @@ class Game:
                     self.handle_player_collision()
 
     def handle_platform_collision(self, player, platform):
-        if player.rect.bottom <= platform.rect.top + 100:
+        if player.rect.bottom <= platform.rect.top + 10:
             player.on_moving_platform = True
             player.platform = platform
         else:
