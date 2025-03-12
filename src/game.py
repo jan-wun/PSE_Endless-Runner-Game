@@ -72,6 +72,8 @@ class Game:
         # Set variables for current run.
         self.set_up_run()
 
+        self.shrink_timer = 0  # Timer für Shrink-Power-Up
+
         # Initialize and set timers for background speed, obstacle, enemy and power up objects.
         self.obstacle_timer = pygame.USEREVENT + 1
         self.enemy_timer = pygame.USEREVENT + 2
@@ -247,6 +249,11 @@ class Game:
             if self.background_x <= -self.width:
                 self.background_x = 0
 
+        if self.shrink_timer > 0:
+            self.shrink_timer -= 1
+            if self.shrink_timer == 0:
+                self.reset_shrink_effect()
+
         # Check for collisions between different game objects and handle them accordingly.
         self.check_collision(self.player.sprite, self.obstacles)
         self.check_collision(self.player.sprite, self.enemies)
@@ -256,6 +263,17 @@ class Game:
 
         # Update distance.
         self.distance += 1
+
+    def reset_shrink_effect(self):
+        """Resets the shrink effect when the timer expires."""
+        self.player.sprite.scale_factor = 1.0
+        self.player.sprite.rect.width = self.player.sprite.original_width
+        self.player.sprite.rect.height = self.player.sprite.original_height
+        self.player.sprite.position[1] -= (self.player.sprite.original_height * 0.75)  # Reposition to normal
+
+        self.player.sprite.weapon.scale_factor = 1.0
+        self.player.sprite.weapon.rect.width = self.player.sprite.weapon.original_width
+        self.player.sprite.weapon.rect.height = self.player.sprite.weapon.original_height
 
     def render(self):
         """

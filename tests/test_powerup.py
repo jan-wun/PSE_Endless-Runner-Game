@@ -15,6 +15,7 @@ def sample_powerup(mock_game):
     (PowerUpType.INVINCIBILITY, "invincible_powerup"),
     (PowerUpType.FREEZE, "freeze_powerup"),
     (PowerUpType.MULTIPLE_SHOTS, "multiple_shots_power_up"),
+    (PowerUpType.SHRINK, "shrink_powerup"),
 ])
 def test_powerup_initialization(mock_game, powerup_type, expected_images):
     """Tests if the power-up initializes correctly with the expected type and image."""
@@ -29,6 +30,7 @@ def test_powerup_initialization(mock_game, powerup_type, expected_images):
     (PowerUpType.INVINCIBILITY, lambda game: game.player.sprite.invincible),
     (PowerUpType.FREEZE, lambda game: game.freeze),
     (PowerUpType.MULTIPLE_SHOTS, lambda game: game.player.sprite.weapon.max_shots),
+    (PowerUpType.SHRINK, lambda game: game.player.sprite.scale_factor == 0.25),
 ])
 def test_apply_powerup(sample_powerup, mock_game, powerup_type, expected_effect):
     """Tests if the power-up applies the correct effect to the player or game."""
@@ -38,6 +40,10 @@ def test_apply_powerup(sample_powerup, mock_game, powerup_type, expected_effect)
     if powerup_type == PowerUpType.MULTIPLE_SHOTS:
         assert mock_game.player.sprite.weapon.max_shots == sample_powerup.assets.config["multiple_shots"]
         assert mock_game.player.sprite.weapon.shots == sample_powerup.assets.config["multiple_shots"]
+    elif powerup_type == PowerUpType.SHRINK:
+        assert mock_game.player.sprite.scale_factor == 0.25
+        assert mock_game.player.sprite.weapon.scale_factor == 0.25
+        assert mock_game.player.sprite.rect.height == int(mock_game.player.sprite.original_height * 0.25)
     else:
         assert expected_effect(mock_game) is True
 
@@ -64,3 +70,15 @@ def test_powerup_kills_itself_when_off_screen(sample_powerup):
     with mock.patch.object(sample_powerup, "kill") as mock_kill:
         sample_powerup.move()
         mock_kill.assert_called_once()
+
+def test_shrink_powerup_expires(mock_game):
+    """Tests if the shrink effect expires after the defined time."""
+    powerup = PowerUp([500, 100], PowerUpType.SHRINK, mock_game)
+    powerup.apply_powerup()
+
+    # Simulate timer countdown
+    mock_game.shrink_timer = 1  # Set to 1 frame remaining
+    mock_game.update()
+
+    assert mock_game.player.sprite.scale_factor == 1.0  # Player should return to normal size
+    assert mock_game.player.sprite.weapon.scale_factor == 1.0

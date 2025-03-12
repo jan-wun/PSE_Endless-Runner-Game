@@ -26,6 +26,9 @@ class PowerUp(Entity):
             images = self.assets.freeze_powerup
         elif self.type == PowerUpType.MULTIPLE_SHOTS:
             images = self.assets.multiple_shots_power_up
+        elif self.type == PowerUpType.SHRINK:
+            images = self.assets.shrink_powerup
+
         super().__init__(position, images, None, game)
 
     def apply_powerup(self):
@@ -39,6 +42,20 @@ class PowerUp(Entity):
         elif self.type == PowerUpType.MULTIPLE_SHOTS:
             self.game.player.sprite.weapon.max_shots = self.assets.config["multiple_shots"]
             self.game.player.sprite.weapon.shots = self.assets.config["multiple_shots"]
+        elif self.type == PowerUpType.SHRINK:
+            player = self.game.player.sprite
+            player.scale_factor = 0.25  # Reduce size to 1/4
+            player.rect.width = int(player.original_width * player.scale_factor)
+            player.rect.height = int(player.original_height * player.scale_factor)
+            player.position[1] += (player.original_height - player.rect.height)  # Adjust floor alignment
+
+            # Reduce weapon size proportionally
+            player.weapon.scale_factor = 0.25
+            player.weapon.rect.width = int(player.weapon.original_width * player.weapon.scale_factor)
+            player.weapon.rect.height = int(player.weapon.original_height * player.weapon.scale_factor)
+
+            # Start timer
+            self.game.shrink_timer = self.game.fps * self.game.assets.config["shrink_time"]
 
     def move(self):
         """

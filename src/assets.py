@@ -120,6 +120,19 @@ class Assets(object):
         self.multiple_shots_power_up_inactive = [pygame.transform.scale(
             pygame.image.load(os.path.join(image_path, "power_ups/multiple_shots_inactive.png")).convert_alpha(),
             (56, 56))]
+        # New Shrink Power-Up Assets
+        self.shrink_powerup = [
+            pygame.transform.scale(
+                pygame.image.load(os.path.join(image_path, "power_ups/shrink.png")).convert_alpha(),
+                (56, 56)
+            )
+        ]
+        self.shrink_powerup_inactive = [
+            pygame.transform.scale(
+                pygame.image.load(os.path.join(image_path, "power_ups/shrink_inactive.png")).convert_alpha(),
+                (56, 56)
+            )
+        ]
 
         # Images for weapon.
         self.default_weapon_bullet = pygame.transform.scale_by(

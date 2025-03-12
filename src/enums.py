@@ -58,3 +58,4 @@ class PowerUpType(Enum):
     INVINCIBILITY = "invincibility"
     FREEZE = "freeze"
     MULTIPLE_SHOTS = "multiple_shots"
+    SHRINK = "shrink"

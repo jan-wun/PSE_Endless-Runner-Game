@@ -75,6 +75,10 @@ class Player(Entity):
             PlayerState.SLIDING: self.images_slide
         }
 
+        self.original_width = self.rect.width
+        self.original_height = self.rect.height
+        self.scale_factor = 1.0  # Standard-Skalierung
+
     def handle_input(self):
         """
         Handles input for player. Executes specific movement / action according to user input.
@@ -229,6 +233,9 @@ class Player(Entity):
         """
         Updates player.
         """
+        self.rect.width = int(self.original_width * self.scale_factor)
+        self.rect.height = int(self.original_height * self.scale_factor)
+
         self.handle_input()
         self.jump()
         self.slide()
