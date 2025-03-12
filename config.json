@@ -31,5 +31,6 @@
   "power_up_fall_speed": 3,
   "projectile_velocity": 5,
   "upgrade_weapon_costs": 50,
-  "extra_life_costs": 100
+  "extra_life_costs": 100,
+  "shrink_time": 5
 }

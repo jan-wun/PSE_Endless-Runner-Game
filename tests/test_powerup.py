@@ -1,6 +1,7 @@
 import pytest
 from src.powerup import PowerUp
 from src.enums import PowerUpType
+from src.game import Game
 from unittest import mock
 
 
@@ -35,6 +36,17 @@ def test_powerup_initialization(mock_game, powerup_type, expected_images):
 def test_apply_powerup(sample_powerup, mock_game, powerup_type, expected_effect):
     """Tests if the power-up applies the correct effect to the player or game."""
     sample_powerup.type = powerup_type
+
+    # Ensure that original_width, original_height, scale_factor, and position are set before apply_powerup()
+    mock_game.player.sprite.original_width = 100
+    mock_game.player.sprite.original_height = 200
+    mock_game.player.sprite.scale_factor = 1.0
+    mock_game.player.sprite.position = [50, 300]  # Ensure position is a list
+
+    mock_game.player.sprite.weapon.original_width = 50
+    mock_game.player.sprite.weapon.original_height = 20
+    mock_game.player.sprite.weapon.scale_factor = 1.0
+
     sample_powerup.apply_powerup()
 
     if powerup_type == PowerUpType.MULTIPLE_SHOTS:
@@ -71,14 +83,28 @@ def test_powerup_kills_itself_when_off_screen(sample_powerup):
         sample_powerup.move()
         mock_kill.assert_called_once()
 
-def test_shrink_powerup_expires(mock_game):
+def test_shrink_powerup_expires():
     """Tests if the shrink effect expires after the defined time."""
-    powerup = PowerUp([500, 100], PowerUpType.SHRINK, mock_game)
+    game = Game([1344, 768])  # Use a real game instance
+    mock_player = mock.Mock()
+    game.player.sprite = mock_player
+
+    # Ensure that original_width, original_height, scale_factor, and position are set before apply_powerup()
+    mock_player.original_width = 100
+    mock_player.original_height = 200
+    mock_player.scale_factor = 1.0
+    mock_player.position = [50, 300]  # Ensure position is a list
+
+    mock_player.weapon.original_width = 50
+    mock_player.weapon.original_height = 20
+    mock_player.weapon.scale_factor = 1.0
+
+    powerup = PowerUp([500, 100], PowerUpType.SHRINK, game)
     powerup.apply_powerup()
 
     # Simulate timer countdown
-    mock_game.shrink_timer = 1  # Set to 1 frame remaining
-    mock_game.update()
+    game.shrink_timer = 1  # Set to 1 frame remaining
+    game.update()
 
-    assert mock_game.player.sprite.scale_factor == 1.0  # Player should return to normal size
-    assert mock_game.player.sprite.weapon.scale_factor == 1.0
+    assert mock_player.scale_factor == 1.0  # Player should return to normal size
+    assert mock_player.weapon.scale_factor == 1.0
