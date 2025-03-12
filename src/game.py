@@ -213,7 +213,7 @@ class Game:
                 # Check powerup timer and add a random powerup object to powerups.
                 elif event.type == self.power_up_timer:
                     # Multiple_shots are only added to the random selection if the player has not collected them yet.
-                    power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE]
+                    power_up_list = [PowerUpType.INVINCIBILITY, PowerUpType.FREEZE, PowerUpType.SHRINK]
                     if not self.player.sprite.weapon.max_shots == self.assets.config["multiple_shots"]:
                         power_up_list.append(PowerUpType.MULTIPLE_SHOTS)
                     power_up_choice = random.choice(power_up_list)
@@ -529,10 +529,12 @@ class Game:
 
     def display_power_ups(self):
         """
-        Displays power ups on screen. If they are grey, they are not active.
+        Displays power-ups on screen. If they are grey, they are not active.
         """
         for power_up_type in PowerUpType:
             time_left = ""
+            height = 0
+
             if power_up_type == PowerUpType.MULTIPLE_SHOTS:
                 if self.player.sprite.weapon.max_shots == self.assets.config["multiple_shots"]:
                     image = self.assets.multiple_shots_power_up
@@ -540,20 +542,31 @@ class Game:
                 else:
                     image = self.assets.multiple_shots_power_up_inactive
                 height = 120
-            if power_up_type == PowerUpType.FREEZE:
+
+            elif power_up_type == PowerUpType.FREEZE:
                 if self.freeze:
                     image = self.assets.freeze_powerup
                     time_left = round(self.freeze_time / self.fps, 1)
                 else:
                     image = self.assets.freeze_powerup_inactive
                 height = 190
-            if power_up_type == PowerUpType.INVINCIBILITY:
+
+            elif power_up_type == PowerUpType.INVINCIBILITY:
                 if self.player.sprite.invincible:
                     image = self.assets.invincible_powerup
                     time_left = round(self.player.sprite.invincible_time / self.fps, 1)
                 else:
                     image = self.assets.invincible_powerup_inactive
                 height = 260
+
+            elif power_up_type == PowerUpType.SHRINK:
+                if self.shrink_timer > 0:
+                    image = self.assets.shrink_powerup
+                    time_left = round(self.shrink_timer / self.fps, 1)
+                else:
+                    image = self.assets.shrink_powerup_inactive
+                height = 330
+
             self.screen.blit(image[0], (self.width - 70, height))
             self.screen.blit(self.assets.font_comicsans_small.render(str(time_left), True, "cyan"),
                              (self.width - 105, height + 15))
