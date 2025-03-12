@@ -205,7 +205,14 @@ class Player(Entity):
         if moving_left or moving_left_jump or moving_left_slide:
             # Flip images vertically.
             self.image_list = [pygame.transform.flip(image, True, False) for image in self.image_list]
-        self.image = self.image_list[0]
+        # Maintain scaling after animation update
+        self.image = pygame.transform.scale(self.image_list[int(self.current_frame)],
+                                            (int(self.original_width * self.scale_factor),
+                                             int(self.original_height * self.scale_factor)))
+
+        # Adjust sliding position if shrink power-up is active
+        if self.current_state == PlayerState.SLIDING:
+            self.position[1] = self.slide_height + (self.original_height * self.scale_factor - self.rect.height)
 
         # Update the animation frame.
         self.update_animation_frame()
@@ -214,11 +221,10 @@ class Player(Entity):
         """
         Update the animation frame based on the elapsed time.
         """
-        # Calculate the index of the current frame based on the current frame counter and animation speed.
         self.current_frame = (self.current_frame + self.animation_speed / 100) % len(self.image_list)
-
-        # Set the image of the sprite to the one corresponding to the calculated index.
-        self.image = self.image_list[int(self.current_frame)]
+        self.image = pygame.transform.scale(self.image_list[int(self.current_frame)],
+                                            (int(self.original_width * self.scale_factor),
+                                             int(self.original_height * self.scale_factor)))
 
     def shoot(self):
         """
@@ -233,8 +239,16 @@ class Player(Entity):
         """
         Updates player.
         """
-        self.rect.width = int(self.original_width * self.scale_factor)
-        self.rect.height = int(self.original_height * self.scale_factor)
+        # Scale the player's image instead of modifying rect dimensions manually
+        self.image = pygame.transform.scale(self.image_list[0],
+                                            (int(self.original_width * self.scale_factor),
+                                             int(self.original_height * self.scale_factor)))
+        self.rect = self.image.get_rect(topleft=self.position)
+
+        # Adjust player position when shrinking to maintain ground alignment
+        if self.scale_factor < 1.0:
+            self.position[1] = 520 + (self.original_height - self.rect.height)
+
 
         self.handle_input()
         self.jump()
@@ -248,10 +262,12 @@ class Player(Entity):
                 self.invincible = False
                 self.invincible_time = self.game.fps * self.assets.config["invincible_time"]
         self.update_animation()
-        # Set the previous walking state at the end of the update method.
-        if self.current_state == PlayerState.WALKING_LEFT or self.current_state == PlayerState.WALKING_RIGHT:
+
+        # Store previous walking state at the end of update
+        if self.current_state in [PlayerState.WALKING_LEFT, PlayerState.WALKING_RIGHT]:
             self.previous_walking_state = self.current_state
-        # Update weapon.
+
+        # Update weapon
         self.weapon.update()
         super().update()
 
