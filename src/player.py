@@ -75,6 +75,9 @@ class Player(Entity):
             PlayerState.SLIDING: self.images_slide
         }
 
+        self.on_moving_platform = False
+        self.platform = None
+
     def handle_input(self):
         """
         Handles input for player. Executes specific movement / action according to user input.
@@ -246,6 +249,8 @@ class Player(Entity):
             self.previous_walking_state = self.current_state
         # Update weapon.
         self.weapon.update()
+        if self.on_moving_platform and self.platform:
+            self.rect.x += self.platform.speed
         super().update()
 
     def reset(self):

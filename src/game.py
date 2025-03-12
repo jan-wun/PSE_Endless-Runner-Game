@@ -431,8 +431,17 @@ class Game:
                 elif isinstance(hit_sprite, Projectile):
                     if hit_sprite.shooter != "player":
                         self.handle_player_collision()
+                elif isinstance(hit_sprite, Obstacle) and hit_sprite.type == "car":
+                    self.handle_platform_collision(sprite, hit_sprite)
                 else:
                     self.handle_player_collision()
+
+    def handle_platform_collision(self, player, platform):
+        if player.rect.bottom <= platform.rect.top + 100:
+            player.on_moving_platform = True
+            player.platform = platform
+        else:
+            self.handle_player_collision()
 
     def handle_player_collision(self):
         """
