@@ -440,6 +440,8 @@ class Game:
         if player.rect.bottom <= platform.rect.top + 10:
             player.on_moving_platform = True
             player.platform = platform
+            player.rect.bottom = platform.rect.top  # Spieler genau auf der Plattform ausrichten
+            player.velocity_y = 0  # Spieler darf nicht weiter fallen
         else:
             self.handle_player_collision()
 

@@ -77,6 +77,7 @@ class Player(Entity):
 
         self.on_moving_platform = False
         self.platform = None
+        self.velocity_y = 0  # Sicherstellen, dass die vertikale Geschwindigkeit existiert
 
     def handle_input(self):
         """
@@ -255,7 +256,24 @@ class Player(Entity):
 
         # Nach dem super().update() die Bewegung mit der Plattform sicherstellen
         if self.on_moving_platform and self.platform:
-            self.rect.x = previous_rect.x + self.platform.speed  # Position nicht überschreiben
+            self.rect.x = previous_rect.x - self.platform.speed  # Korrektur: Bewegung in Plattformrichtung
+            self.rect.bottom = self.platform.rect.top  # Spieler genau auf der Plattform halten
+            self.velocity_y = 0  # Vertikale Bewegung stoppen
+
+            # Spieler darf nicht über den Bildschirmrand hinaus bewegt werden
+            if self.rect.right > self.game.width:
+                self.rect.right = self.game.width
+                self.on_moving_platform = False
+                self.platform = None
+            elif self.rect.left < 0:
+                self.rect.left = 0
+                self.on_moving_platform = False
+                self.platform = None
+
+            # Spieler verlässt das Auto, wenn das Auto den Bildschirmrand erreicht
+            if self.platform.rect.right >= self.game.width or self.platform.rect.left <= 0:
+                self.on_moving_platform = False
+                self.platform = None
 
     def reset(self):
         """
