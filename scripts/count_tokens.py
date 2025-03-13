@@ -25,9 +25,10 @@ def get_relevant_files(directory):
     """Finde alle relevanten Dateien im Repo"""
     relevant_files = []
     for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".py") or file in ADDITIONAL_RELEVANT_FILES:
-                relevant_files.append(os.path.join(root, file))
+        if not root.endswith("scripts"):
+            for file in files:
+                if file.endswith(".py") or file in ADDITIONAL_RELEVANT_FILES:
+                    relevant_files.append(os.path.join(root, file))
     return relevant_files
 
 
