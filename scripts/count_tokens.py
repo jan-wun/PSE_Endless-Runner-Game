@@ -2,9 +2,10 @@ import os
 import subprocess
 import tiktoken
 
-# Dein GitHub-Repo-URL
+# GitHub-Repo-URL
 GITHUB_REPO_URL = "https://github.com/jan-wun/PSE_Endless-Runner-Game"
 LOCAL_REPO_DIR = "../../../Library/Application Support/JetBrains/PyCharm2024.2/scratches/PSE_Endless-Runner-Game"
+ADDITIONAL_RELEVANT_FILES = ["requirements.txt", "config.json", "start.bat"]
 
 # GPT-4o Tokenizer laden
 encoding = tiktoken.encoding_for_model("gpt-4o")
@@ -20,14 +21,14 @@ def clone_repo(repo_url, target_dir):
     print(f"Repo erfolgreich geklont: {target_dir}")
 
 
-def get_python_files(directory):
-    """Finde alle Python-Dateien im Repo"""
-    py_files = []
+def get_relevant_files(directory):
+    """Finde alle relevanten Dateien im Repo"""
+    relevant_files = []
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith(".py"):
-                py_files.append(os.path.join(root, file))
-    return py_files
+            if file.endswith(".py") or file in ADDITIONAL_RELEVANT_FILES:
+                relevant_files.append(os.path.join(root, file))
+    return relevant_files
 
 
 def count_tokens_in_file(file_path):
@@ -38,12 +39,12 @@ def count_tokens_in_file(file_path):
 
 
 def count_total_tokens(directory):
-    """Token-Anzahl für alle Python-Dateien summieren"""
-    py_files = get_python_files(directory)
+    """Token-Anzahl für alle relevante Dateien summieren"""
+    relevant_files = get_relevant_files(directory)
     total_tokens = 0
 
     print("\nToken-Anzahl pro Datei:")
-    for file in py_files:
+    for file in relevant_files:
         tokens = count_tokens_in_file(file)
         total_tokens += tokens
         print(f"{file}: {tokens} Tokens")
